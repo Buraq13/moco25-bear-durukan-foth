@@ -1,20 +1,29 @@
 package com.example.fernfreunde.ui
 
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,10 +35,7 @@ fun MainScreen(
 ) {
     Scaffold(
         topBar = {
-            // NOTE: BeReal-like, minimal. No settings/profile icons per your spec.
-            CenterAlignedTopAppBar(
-                title = { Text("MissionMate") }
-            )
+            CenterAlignedTopAppBar(title = { Text("MissionMate") })
         },
         bottomBar = {
             BottomNavBar(
@@ -72,7 +78,6 @@ private fun FeedContent(
 
 @Composable
 private fun MissionBanner(missionText: String) {
-    // Simple, readable banner at top of feed; easy to restyle later
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -105,7 +110,7 @@ private fun PostCardPlaceholder() {
             .heightIn(min = 220.dp),
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            // Header placeholder
+            // Header placeholder (avatar + two lines)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -123,21 +128,15 @@ private fun PostCardPlaceholder() {
                 }
             }
             Spacer(Modifier.height(12.dp))
-            // Image block placeholder (BeReal dual-cam feel simulated by two boxes)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(140.dp),
-                    tonalElevation = 1.dp
-                ) {}
-                Surface(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(140.dp),
-                    tonalElevation = 1.dp
-                ) {}
-            }
+
+            // Image block placeholder (MVP: ein Bild statt zwei)
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp), // oder: .aspectRatio(1f) für quadratisch
+                tonalElevation = 1.dp
+            ) {}
+
             Spacer(Modifier.height(12.dp))
             Surface(modifier = Modifier.fillMaxWidth().height(10.dp)) {}
         }
@@ -158,7 +157,7 @@ private fun BottomNavBar(
             label = { Text("Friends") }
         )
         NavigationBarItem(
-            selected = true, // middle action feels primary; not switching content for now
+            selected = true, // nur optisch aktiv; echte Nav später
             onClick = onUploadClick,
             icon = { Icon(Icons.Outlined.AddCircle, contentDescription = "Upload") },
             label = { Text("Upload") }
@@ -172,7 +171,6 @@ private fun BottomNavBar(
     }
 }
 
-// --- Preview ---
 @Preview(showBackground = true)
 @Composable
 private fun MainScreenPreview() {
