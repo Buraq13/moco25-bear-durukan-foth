@@ -15,7 +15,6 @@ fun PostCardPlaceholder(modifier: Modifier = Modifier) {
             .heightIn(min = 220.dp),
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            // Header (Avatar + 2 Zeilen)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -35,11 +34,11 @@ fun PostCardPlaceholder(modifier: Modifier = Modifier) {
 
             Spacer(Modifier.height(12.dp))
 
-            // Bild-Platzhalter (ein Bild, MVP)
+            // Bild-Platzhalter (ein Bild)
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp), // oder .aspectRatio(1f) für quadratisch
+                    .height(180.dp),
                 tonalElevation = 1.dp
             ) {}
 

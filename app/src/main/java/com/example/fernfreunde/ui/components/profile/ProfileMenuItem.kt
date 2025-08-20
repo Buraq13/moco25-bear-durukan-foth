@@ -21,5 +21,5 @@ fun ProfileMenuItem(
         headlineContent = { Text(label) },
         trailingContent = { Icon(Icons.Outlined.ChevronRight, contentDescription = null) }
     )
-    Divider()
+    HorizontalDivider()
 }

@@ -16,9 +16,7 @@ import com.example.fernfreunde.ui.components.navigation.TopBar
 
 //@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FriendsListScreen(
-
-) {
+fun FriendsListScreen() {
     Scaffold(
         topBar = { TopBar("Friends") },
         bottomBar = {

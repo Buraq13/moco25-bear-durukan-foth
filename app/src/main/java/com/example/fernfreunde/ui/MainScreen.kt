@@ -19,8 +19,7 @@ import com.example.fernfreunde.ui.components.navigation.TopBar
 @Composable
 fun MainScreen(
     missionText: String = "Today's Mission: Share a photo of your workspace.",
-
-) {
+    ) {
     Scaffold(
         topBar = {
             TopBar("MissionMate")

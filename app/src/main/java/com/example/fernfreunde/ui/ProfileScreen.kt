@@ -17,20 +17,12 @@ import com.example.fernfreunde.ui.components.profile.ProfileMenuItem
 @Composable
 fun ProfileScreen(
     onFriendsClick: () -> Unit = {},
-    onUploadClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
 ) {
     Scaffold(
         topBar = { TopBar("Profile") },
         bottomBar = {
-            BottomBar(current = NavItem.Profile) { item ->
-                when (item) {
-                    NavItem.Friends -> onFriendsClick()
-                    NavItem.Upload  -> onUploadClick()
-                    NavItem.Profile -> onProfileClick()
-                }
-            }
+            BottomBar(current = NavItem.Upload) { /* TODO: später Navigation */ }
         }
     ) { innerPadding ->
         LazyColumn(
@@ -48,7 +40,6 @@ fun ProfileScreen(
             }
             item { Spacer(Modifier.height(8.dp)) }
 
-            // Einfache Menüpunkte (nur Platzhalter)
             item { ProfileMenuItem("Settings", onClick = onSettingsClick) }
             item { ProfileMenuItem("My Friends", onClick = onFriendsClick) }
             item { ProfileMenuItem("Legal", onClick = { /* TODO */ }) }

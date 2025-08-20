@@ -21,21 +21,11 @@ import com.example.fernfreunde.ui.components.navigation.TopBar
 
 //@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UploadScreen(
-    onFriendsClick: () -> Unit = {},
-    onUploadClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {},
-) {
+fun UploadScreen() {
     Scaffold(
         topBar = { TopBar("Upload") },
         bottomBar = {
-            BottomBar(current = NavItem.Upload) { item ->
-                when (item) {
-                    NavItem.Friends -> onFriendsClick()
-                    NavItem.Upload  -> onUploadClick()
-                    NavItem.Profile -> onProfileClick()
-                }
-            }
+            BottomBar(current = NavItem.Upload) { /* TODO: später Navigation */ }
         }
     ) { innerPadding ->
         CameraStub(
