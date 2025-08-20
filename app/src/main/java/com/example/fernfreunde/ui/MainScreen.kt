@@ -1,4 +1,4 @@
-package com.example.fernfreunde.MainScreen
+package com.example.fernfreunde.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

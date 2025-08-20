@@ -1,18 +1,11 @@
-package com.example.fernfreunde.FriendsList
+package com.example.fernfreunde.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddCircle
-import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -24,22 +17,18 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.CircleShape
+import com.example.fernfreunde.ui.components.BottomBar
+import com.example.fernfreunde.ui.components.NavItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendsListScreen(
-    onFriendsClick: () -> Unit = {},
-    onUploadClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {},
+
 ) {
     Scaffold(
         topBar = { CenterAlignedTopAppBar(title = { Text("Friends") }) },
         bottomBar = {
-            FriendsBottomNavBar(
-                onFriendsClick = onFriendsClick,
-                onUploadClick = onUploadClick,
-                onProfileClick = onProfileClick
-            )
+            BottomBar(current = NavItem.Upload) { /* TODO: später Navigation */ }
         }
     ) { innerPadding ->
         FriendsList(
@@ -100,34 +89,6 @@ private fun FriendItem(
                 Text("Add")
             }
         }
-    }
-}
-
-@Composable
-private fun FriendsBottomNavBar(
-    onFriendsClick: () -> Unit,
-    onUploadClick: () -> Unit,
-    onProfileClick: () -> Unit,
-) {
-    NavigationBar {
-        NavigationBarItem(
-            selected = true, // Friends ist hier aktiv
-            onClick = onFriendsClick,
-            icon = { Icon(Icons.Outlined.Group, contentDescription = "Friends") },
-            label = { Text("Friends") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onUploadClick,
-            icon = { Icon(Icons.Outlined.AddCircle, contentDescription = "Upload") },
-            label = { Text("Upload") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onProfileClick,
-            icon = { Icon(Icons.Outlined.Person, contentDescription = "Profile") },
-            label = { Text("Profile") }
-        )
     }
 }
 
