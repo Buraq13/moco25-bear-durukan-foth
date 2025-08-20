@@ -11,8 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.fernfreunde.ui.components.BottomBar
-import com.example.fernfreunde.ui.components.NavItem
+import com.example.fernfreunde.ui.components.navigation.BottomBar
+import com.example.fernfreunde.ui.components.navigation.NavItem
 import com.example.fernfreunde.ui.components.feed.MissionBanner
 import com.example.fernfreunde.ui.components.feed.PostCardPlaceholder
 

@@ -1,4 +1,4 @@
-package com.example.fernfreunde.ui.components
+package com.example.fernfreunde.ui.components.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircle
