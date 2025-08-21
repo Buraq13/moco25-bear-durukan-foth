@@ -2,7 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("org.jetbrains.kotlin.kapt") // für Room Compiler
+    id("org.jetbrains.kotlin.kapt")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -45,6 +46,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
@@ -64,4 +66,13 @@ dependencies {
     implementation("androidx.room:room-runtime:${room_version}")
     kapt("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:${room_version}")
+
+    // Firebase
+    implementation("com.google.firebase:firebase-storage:22.0.0")
+
+    implementation(platform("com.google.firebase:firebase-bom:34.1.0")) // BOM verwaltet kompatible Firebase-Vers.
+    implementation("com.google.firebase:firebase-auth-ktx")           // Firebase Auth (optional, aber praktisch)
+    implementation("com.google.firebase:firebase-firestore-ktx")      // Firestore KTX (leicht zu benutzen)
+    implementation("com.google.firebase:firebase-storage-ktx")        // Storage KTX (Datei-Upload)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3") // .await() für Tasks
 }
