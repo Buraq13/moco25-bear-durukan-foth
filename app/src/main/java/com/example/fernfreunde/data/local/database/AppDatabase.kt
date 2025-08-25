@@ -35,7 +35,7 @@ import com.example.fernfreunde.data.local.entities.User
     version = 1,
     exportSchema = true
 )
-abstract class appDatabase: RoomDatabase() {
+abstract class AppDatabase: RoomDatabase() {
 
     abstract fun userDao(): UserDao
     abstract fun groupDao(): GroupDao

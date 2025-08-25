@@ -1,4 +1,4 @@
-package com.example.fernfreunde.data.local
+package com.example.fernfreunde.data.mappers
 
 import androidx.room.TypeConverter
 import org.json.JSONArray
@@ -6,9 +6,13 @@ import org.json.JSONArray
 enum class SyncStatus { PENDING, SYNCED, FAILED }
 
 class Converters {
-    // List<String> <-> JSON String
+
+    // ***************************************************************** //
+    // String Converters                                                 //
+    // ***************************************************************** //
+
     @TypeConverter
-    fun fromStringList(value: String?): List<String> {
+    fun stringToList(value: String?): List<String> {
         if (value.isNullOrBlank()) return emptyList()
         val arr = JSONArray(value)
         val list = mutableListOf<String>()
@@ -24,13 +28,14 @@ class Converters {
         return arr.toString()
     }
 
-    // SyncStatus <-> String
+    // ***************************************************************** //
+    // SyncStatus <-> String Converters                                  //
+    // ***************************************************************** //
+
     @TypeConverter
-    fun fromSyncStatus(value: String?): SyncStatus? =
+    fun stringToSyncStatus(value: String?): SyncStatus? =
         value?.let { SyncStatus.valueOf(it) }
 
     @TypeConverter
     fun syncStatusToString(status: SyncStatus?): String? = status?.name
-
-    // Long? passt für timestamps (wenn du später Instant nutzen willst, mappe in domain layer)
 }

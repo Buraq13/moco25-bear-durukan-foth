@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.kapt")
     id("com.google.gms.google-services")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -53,6 +54,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.work.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -69,10 +71,15 @@ dependencies {
 
     // Firebase
     implementation("com.google.firebase:firebase-storage:22.0.0")
+    implementation("com.google.firebase:firebase-firestore:26.0.0")
 
     implementation(platform("com.google.firebase:firebase-bom:34.1.0")) // BOM verwaltet kompatible Firebase-Vers.
     implementation("com.google.firebase:firebase-auth-ktx")           // Firebase Auth (optional, aber praktisch)
     implementation("com.google.firebase:firebase-firestore-ktx")      // Firestore KTX (leicht zu benutzen)
     implementation("com.google.firebase:firebase-storage-ktx")        // Storage KTX (Datei-Upload)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3") // .await() für Tasks
+
+    // Dagger Hilt
+    implementation("com.google.dagger:hilt-android:2.57")
+    kapt("com.google.dagger:hilt-android-compiler:2.57")
 }
