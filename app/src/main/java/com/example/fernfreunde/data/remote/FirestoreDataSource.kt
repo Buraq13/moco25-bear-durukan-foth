@@ -54,11 +54,13 @@ class FirestoreDataSource {
     // nur die eigenen Posts des eingeloggten Users holen, sortiert nach createdAt
     suspend fun getPostsFromUser(userId: String): List<PostDto> = withContext(Dispatchers.IO) {
         try {
+            // snapshot = Firestore-Query um alle Dokumente nach userId zu filtern
             val snapshot = postsCollection
                 .whereEqualTo("userId", userId)
                 .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
                 .await()
+            // wandelt jedes snapshot-document in ein PostDto um -> PostDto benötigt dafür default values im Konstuktor!
             snapshot.documents.mapNotNull { it.toObject(PostDto::class.java) }
         } catch (e: Exception) {
             emptyList()
@@ -81,7 +83,7 @@ class FirestoreDataSource {
                 results += snapshot.documents.mapNotNull { it.toObject(PostDto::class.java) }
             }
             // sortiere global nach Zeit (server oder client)
-            results.sortedByDescending { dto ->
+            val sorted = results.sortedByDescending { dto ->
                 // dto.createdAtServer kann ein Timestamp oder Long oder null sein -> sichere Umwandlung
                 val server = when (val s = dto.createdAtServer) {
                     is Timestamp -> s.toDate().time
@@ -90,6 +92,7 @@ class FirestoreDataSource {
                 }
                 server ?: dto.createdAtClient
             }
+            sorted
         } catch (e: Exception) {
             emptyList()
         }

@@ -2,6 +2,7 @@ package com.example.fernfreunde.data.repositories
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.work.*
 import androidx.work.NetworkType
 
@@ -38,7 +39,8 @@ class PostRepository @Inject constructor(
     // CREATE NEW POSTS                                                  //
     // ***************************************************************** //
 
-    // lokal neuen Post erstellen und der Warteschlange eines Upload Workers hinzufügen ---> für ViewModel
+    // lokal neuen Post erstellen und der Warteschlange eines Upload Workers hinzufügen
+    // ---> wird von CreatePostViewModel aufgerufen, nachdem Eingabe validiert wurde
     suspend fun createPost(userId: String, userName: String?, text: String?, mediaUri: Uri?) {
         val postId = UUID.randomUUID().toString()
 
@@ -57,34 +59,47 @@ class PostRepository @Inject constructor(
         )
 
         // Post sofort lokal persistieren, so dass er direkt in der UI angezeigt werden kann
+        // z.B. für Vorschau, bevor der User auf "Posten" drückt
         postDao.insert(localEntity)
 
-        // In die Warteschlange des opload Workers (WorkManager) hinzufügen
+        // Post in die Warteschlange des upload Workers (WorkManager) hinzufügen
         enqueueUploadWork(postId = postId, mediaUri = mediaUri)
     }
 
     // ***************************************************************** //
-    // UPLOAD POSTS                                                      //
+    // UPLOAD POSTS (WORK MANAGER)                                       //
     // ***************************************************************** //
 
-    // WorkManager um Posts hochzuladen ---> für PostRepository & syncPendingPosts
+    // WorkManager um Posts in Firebase hochzuladen ---> für PostRepository & syncPendingPosts
     fun enqueueUploadWork(postId: String, mediaUri: Uri?) {
+
+        // dataBuilder erstellt DataObject, das aus Key-Value-Paaren besteht
+        // in dem Fall enthält es PostId & MediaUri (wenn nicht null), damit der Worker weiß, welches Post-Objekt er bearbeiten soll
         val dataBuilder = Data.Builder()
             .putString(KEY_POST_ID, postId)
         mediaUri?.let { dataBuilder.putString(KEY_MEDIA_URI, it.toString()) }
 
         val inputData = dataBuilder.build()
 
+        // constaints definiert die Vorbedingen welche erfüllt sein müssen, bevor der WorkManager den job ausführen darf
+        // in dem Fall NetworkType.CONNECTED, heißt: nur bei bestehender Internetverbindung
+        // weitere mögliche constraints: setRequiresBatteryNotLow(true), setRequiresStorageNotLow(true)
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
+        // OneTimeWorkRequestBuilder erstellt Auftragstyp für genau einen Lauf des Upload-Workers
+        // dabei muss die Klasse des UploadWorkers übergeben werden, damit sie auch intanziiert werden kann,
+        // nachdem die App-Prozesse beendet wurden (wichtig für Background-Uploads)
         val uploadWork = OneTimeWorkRequestBuilder<com.example.fernfreunde.worker.UploadWorker>()
             .setInputData(inputData)
             .setConstraints(constraints)
+            // BackoffPolicy.EXPONENTIAL bedeutet, die Wartezeit für Neuversuche bei Fehlern steigt exponentiell
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
             .build()
 
+        // enqueueUniqueWork(...) fügt eindeutigen Auftrag in die Warteschlange ein, falls schon ein Auftrag mit
+        // exakt dem gleichen Namen existiert, wird er ersetzt -> verhindert doppelte Uploads
         workManager.enqueueUniqueWork("$UNIQUE_WORK_PREFIX$postId", ExistingWorkPolicy.REPLACE, uploadWork)
     }
 
@@ -105,6 +120,7 @@ class PostRepository @Inject constructor(
     // ***************************************************************** //
 
     // One-Shot Synchronisierung remote <=> local ---> kann manuell von einem SyncService oder beim AppStart aufgerufen werden (optional)
+    // holt einmalig alle Posts der angegebenen friendsIds aus Firestore und schreibt die in die lokale Room Datenbank
     suspend fun syncFriendsPostsRemoteToLocal(friendIds: List<String>) = withContext(Dispatchers.IO) {
         val remotePosts = firestoreDataSource.getFriendsPosts(friendIds)
         val entities = remotePosts.map { it.toEntity() }
@@ -114,10 +130,13 @@ class PostRepository @Inject constructor(
     }
 
     // lokale Datenbank nach Posts mit status "PENDING" überprüfen & in die Warteschlange für Upload packen
+    // stellt sicher, dass nach Neustart der App/Reconnect alle noch nicht hochgeladenen Posts wieder
+    // in die Warteschlange des Upload Workers kommen
+    // ---> idealerweise einmal bei App-Start aufrufen
     suspend fun syncPendingPosts() = withContext(Dispatchers.IO) {
-        val pending = postDao.getPostsBySyncStatus("PENDING")
+        val pending = postDao.getPostsBySyncStatus(SyncStatus.PENDING)
         pending.forEach { post ->
-            enqueueUploadWork(post.localId, null /* mediaUri unknown here */)
+            enqueueUploadWork(post.localId, post.mediaLocalPath?.toUri())
         }
     }
 }

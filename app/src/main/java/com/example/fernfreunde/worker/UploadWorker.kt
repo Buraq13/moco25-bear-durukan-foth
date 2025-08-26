@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.lang.Exception
 import androidx.core.net.toUri
+import com.example.fernfreunde.data.mappers.SyncStatus
 
 // @HiltWorker
 class UploadWorker @AssistedInject constructor(
@@ -27,20 +28,27 @@ class UploadWorker @AssistedInject constructor(
         const val KEY_MEDIA_URI = "key_media_uri"
     }
 
+    // main-method eines Coroutine-Workers, wird vom WorkManager im Hintergrund aufgerufen
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
 
+        // inputData ist das in setInputData(inputData) übergebene DataObjekt
         val postId = inputData.getString(KEY_POST_ID)
             ?: return@withContext Result.failure()
 
         val mediaUriString = inputData.getString(KEY_MEDIA_URI)
         val mediaUri = mediaUriString?.toUri()
 
+        // ließt den lokalen Datensatz aus Room
+        // falls kein lokaler Datensatz mit der entsprechenden postId existiert, wird ein Fehler zurückgegeben
         val local = postDao.getPostSync(postId) ?: return@withContext Result.failure()
 
+        // wenn mediaUri existiert, wird Upload in FirebaseStorage durchgeführt und die downloadUrl zurückgegeben
+        // mit postDao.updateAfterSync(...) wird der lokale Eintrag in Room aktualisiert und die dowloadUrl als
+        // mediaRemoteUrl hinzugefügt
         try {
             if (mediaUri != null) {
                 val downloadUrl = firestoreDataSource.createPost(local.toDto(), mediaUri)
-                postDao.updateAfterSync(postId, postId, downloadUrl, "SYNCED", System.currentTimeMillis())
+                postDao.updateAfterSync(postId, postId, downloadUrl, SyncStatus.SYNCED, System.currentTimeMillis())
             }
             Result.success()
         } catch (e: Exception) {

@@ -32,7 +32,7 @@ interface PostDao {
     suspend fun getPostSync(localId: String): Post?
 
     @Query("SELECT * FROM posts WHERE userId = :userId ORDER BY createdAtClient DESC")
-    fun observePostsForUser(userId: String): Flow<List<Post>>
+    fun observeAllPostsForUser(userId: String): Flow<List<Post>>
 
     @Query("SELECT * FROM posts WHERE userId = :userId AND challengeDate = :challengeDate LIMIT 1")
     suspend fun getPostForUserAndChallenge(userId: String, challengeDate: String): Post?
@@ -47,12 +47,12 @@ interface PostDao {
     )
     fun observePostsForChallengeByUsers(challengeDate: String, userIds: List<String>): Flow<List<Post>>
 
-    @Query("SELECT * FROM posts WHERE syncStatus = :status")
-    suspend fun getPostsBySyncStatus(status: String): List<Post>
-
     // ***************************************************************** //
     // UPDATE SYNCSTATUS                                                 //
     // ***************************************************************** //
+
+    @Query("SELECT * FROM posts WHERE syncStatus = :status")
+    suspend fun getPostsBySyncStatus(status: SyncStatus): List<Post>
 
     @Query("""
         UPDATE posts
@@ -62,7 +62,7 @@ interface PostDao {
             createdAtServer = :createdAtServer
         WHERE localId = :localId
     """)
-    suspend fun updateAfterSync(localId: String, remoteId: String?, mediaUrl: String?, status: String, createdAtServer: Long?)
+    suspend fun updateAfterSync(localId: String, remoteId: String?, mediaUrl: String?, status: SyncStatus, createdAtServer: Long?)
 
     @Query("UPDATE posts SET syncStatus = :status WHERE localId = :localId")
     suspend fun updateStatus(localId: String, status: SyncStatus)
