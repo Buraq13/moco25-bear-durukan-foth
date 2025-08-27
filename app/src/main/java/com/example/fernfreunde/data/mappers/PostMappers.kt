@@ -19,6 +19,7 @@ fun PostDto.toEntity(): Post {
         userId = this.userId,
         userName = this.userName,
         challengeDate = this.challengeDate,
+        challengeId = this.challengeId,
         description = this.description,
         mediaLocalPath = null,
         mediaRemoteUrl = this.mediaRemoteUrl,

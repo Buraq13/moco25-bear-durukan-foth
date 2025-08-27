@@ -5,6 +5,7 @@ data class PostDto (
     val userId: String = "",
     val userName: String? = null,
     val challengeDate: String? = null,
+    val challengeId: String? = null,
     val description: String? = null,
     val mediaRemoteUrl: String? = null,           // remoteUrl von Firebase!!!
     val createdAtClient: Long = System.currentTimeMillis(),
