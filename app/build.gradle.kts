@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -69,15 +70,21 @@ dependencies {
     kapt("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:${room_version}")
 
-    // Firebase
+    // Firebase Firestore
     implementation("com.google.firebase:firebase-storage:22.0.0")
     implementation("com.google.firebase:firebase-firestore:26.0.0")
 
     implementation(platform("com.google.firebase:firebase-bom:34.1.0")) // BOM verwaltet kompatible Firebase-Vers.
-    implementation("com.google.firebase:firebase-auth-ktx")           // Firebase Auth (optional, aber praktisch)
-    implementation("com.google.firebase:firebase-firestore-ktx")      // Firestore KTX (leicht zu benutzen)
-    implementation("com.google.firebase:firebase-storage-ktx")        // Storage KTX (Datei-Upload)
+    implementation("com.google.firebase:firebase-firestore-ktx")        // Firestore KTX (leicht zu benutzen)
+    implementation("com.google.firebase:firebase-storage-ktx")          // Storage KTX (Datei-Upload)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3") // .await() für Tasks
+
+    // Firebase Authentification
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("androidx.credentials:credentials:1.5.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.5.02")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
     // Dagger Hilt
     implementation("com.google.dagger:hilt-android:2.57")

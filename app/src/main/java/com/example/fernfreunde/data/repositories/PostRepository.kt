@@ -5,12 +5,16 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.work.*
 import androidx.work.NetworkType
+import com.example.fernfreunde.data.local.daos.DailyChallengeDao
+import com.example.fernfreunde.data.local.daos.ParticipationDao
 
 import com.example.fernfreunde.data.local.daos.PostDao
+import com.example.fernfreunde.data.local.entities.Participation
 import com.example.fernfreunde.data.local.entities.Post
 import com.example.fernfreunde.data.mappers.SyncStatus
 import com.example.fernfreunde.data.mappers.toEntity
 import com.example.fernfreunde.data.remote.FirestoreDataSource
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -24,8 +28,11 @@ import java.util.concurrent.TimeUnit
 @Singleton
 class PostRepository @Inject constructor(
     private val postDao: PostDao,
+    private val dailyChallengeDao: DailyChallengeDao,
+    private val participationDao: ParticipationDao,
     private val firestoreDataSource: FirestoreDataSource,
     private val workManager: WorkManager,
+    private val auth: FirebaseAuth,
     @ApplicationContext private val context: Context
 ) {
 
@@ -35,13 +42,42 @@ class PostRepository @Inject constructor(
         const val UNIQUE_WORK_PREFIX = "upload_post_"
     }
 
+    private fun currentUserId(): String? = auth.currentUser?.uid
+
+    // ***************************************************************** //
+    // PARTICIPATION CHECK                                               //
+    // ***************************************************************** //
+
+    // Prüft, ob der aktuelle Nutzer noch einen Post für die gegebene Challenge erstellen darf
+    suspend fun canCreatePost(
+        userId: String = currentUserId() ?: throw IllegalStateException("no user signed in"),
+        date: String,
+        challengeId: String?
+    ): Boolean = withContext(Dispatchers.IO) {
+        val dailyChallenge = if (challengeId != null) {
+            dailyChallengeDao.getDailyChallengeByDateAndId(date, challengeId)
+        } else {
+            dailyChallengeDao.getDefaultForDate(date)
+        }
+
+        val maxAllowed = dailyChallenge?.maxPostsPerUser ?: 1
+
+        if (maxAllowed == null) {
+            return@withContext true
+        }
+
+        val currentCount = postDao.countPostsForUserInChallenge(userId, date, challengeId)
+        currentCount < maxAllowed
+    }
+
+
     // ***************************************************************** //
     // CREATE NEW POSTS                                                  //
     // ***************************************************************** //
 
     // lokal neuen Post erstellen und der Warteschlange eines Upload Workers hinzufügen
     // ---> wird von CreatePostViewModel aufgerufen, nachdem Eingabe validiert wurde
-    suspend fun createPost(userId: String, userName: String?, text: String?, mediaUri: Uri?) {
+    suspend fun createPost(userId: String, userName: String?, date: String, challengeId: String, text: String?, mediaUri: Uri?) {
         val postId = UUID.randomUUID().toString()
 
         val localEntity = Post(
@@ -50,7 +86,8 @@ class PostRepository @Inject constructor(
             userId = userId,
             userName = userName,
             description = text,
-            challengeDate = null,
+            challengeDate = date,
+            challengeId = challengeId,
             mediaLocalPath = mediaUri.toString(),
             mediaRemoteUrl = null,
             createdAtClient = System.currentTimeMillis(),
@@ -61,6 +98,16 @@ class PostRepository @Inject constructor(
         // Post sofort lokal persistieren, so dass er direkt in der UI angezeigt werden kann
         // z.B. für Vorschau, bevor der User auf "Posten" drückt
         postDao.insert(localEntity)
+
+        // Participation lokal persestieren um doppelte Teilnahme zu verhindern
+        val participation = Participation(
+            userId = userId,
+            date = date,
+            challengeId = challengeId,
+            postLocalId = postId,
+            createdAtClient = System.currentTimeMillis()
+        )
+        participationDao.insertParticipation(participation)
 
         // Post in die Warteschlange des upload Workers (WorkManager) hinzufügen
         enqueueUploadWork(postId = postId, mediaUri = mediaUri)
@@ -108,15 +155,15 @@ class PostRepository @Inject constructor(
     // ***************************************************************** //
 
     // Posts aller Freunde im Feed anzeigen ---> für ViewModel
-    fun observeFeedForUser(challengeDate: String, friendIds: List<String>): Flow<List<Post>> {
+    fun observeFeedForUser(challengeDate: String, challengeId: String, friendIds: List<String>): Flow<List<Post>> {
         if (friendIds.isEmpty()) {
             return flowOf(emptyList())
         }
-        return postDao.observePostsForChallengeByUsers(challengeDate, friendIds)
+        return postDao.observePostsForChallengeByUsers(challengeDate, challengeId, friendIds)
     }
 
     // ***************************************************************** //
-    // SYNCHRONICE REMOTE <=> LOCAL                                      //
+    // SYNCHRONICE REMOTE <=> LOCAL HELPERS                              //
     // ***************************************************************** //
 
     // One-Shot Synchronisierung remote <=> local ---> kann manuell von einem SyncService oder beim AppStart aufgerufen werden (optional)
