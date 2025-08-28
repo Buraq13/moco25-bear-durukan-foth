@@ -22,7 +22,7 @@ import androidx.room.Index
         ),
         ForeignKey(
             entity = Post::class,
-            parentColumns = ["postLocalId"],
+            parentColumns = ["localId"],
             childColumns = ["postLocalId"],
             onDelete = ForeignKey.CASCADE
         )

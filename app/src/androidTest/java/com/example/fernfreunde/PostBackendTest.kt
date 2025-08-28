@@ -91,7 +91,7 @@ class PostBackendTest {
             bio = null,
             createdAt = System.currentTimeMillis()
         )
-        userDao.upsertUser(user)   // << neu: jetzt existiert der Parent-User
+        userDao.upsert(user)   // << neu: jetzt existiert der Parent-User
 
         // create first post -> should succeed
         val postId = repo.createPostLocalOnly(
@@ -159,7 +159,7 @@ class PostBackendTest {
             bio = null,
             createdAt = System.currentTimeMillis()
         )
-        userDao.upsertUser(user)
+        userDao.upsert(user)
 
         val firstId = repo.createPostLocalOnly(userId, "Multi", today, challengeId, "p1", null)
         val secondId = repo.createPostLocalOnly(userId, "Multi", today, challengeId, "p2", null)

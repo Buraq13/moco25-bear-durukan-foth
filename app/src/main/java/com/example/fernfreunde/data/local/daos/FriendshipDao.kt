@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.fernfreunde.data.local.entities.Friendship
+import com.example.fernfreunde.data.local.entities.FriendshipStatus
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -17,6 +18,9 @@ interface FriendshipDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(friendship: Friendship)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<Friendship>)
+
     // ***************************************************************** //
     // GET/OBSERVE FRIENDSHIPS                                           //
     // ***************************************************************** //
@@ -27,33 +31,40 @@ interface FriendshipDao {
 
     // alle Freunde eines Nutzers anzeigen, bei Änderungen automatisch UI updaten ---> für ViewModel (FriendslistScreen)
     @Query("""
-    SELECT * FROM friendships 
-    WHERE (userIdA = :userId OR userIdB = :userId) 
-      AND status = 'ACCEPTED' 
-    ORDER BY lastInteractionAt DESC
-  """)
-    fun observeFriendsForUser(userId: String): Flow<List<Friendship>>
+      SELECT * FROM friendships 
+      WHERE (userIdA = :userId OR userIdB = :userId) 
+        AND status = :status
+      ORDER BY createdAt DESC
+    """)
+    fun observeFriendsForUserWithStatus(userId: String, status: FriendshipStatus = FriendshipStatus.ACCEPTED): Flow<List<Friendship>>
 
-    // einmalig alle Freunde eines nutzers zählen ---> für Repo/ViewModel
+    // ***************************************************************** //
+    // GET FRIEND-IDS FOR USER                                           //
+    // call getUsersById in UserDao to get User-Entities                 //
+    // ***************************************************************** //
+
+    @Query("""
+      SELECT CASE
+        WHEN userIdA = :userId THEN userIdB
+        ELSE userIdA
+      END
+      FROM friendships
+      WHERE (userIdA = :userId OR userIdB = :userId)
+        AND status = :status
+    """)
+    suspend fun getFriendIdsForUser(userId: String, status: FriendshipStatus = FriendshipStatus.ACCEPTED): List<String>
+
+    // ***************************************************************** //
+    // COUNT FRIENDS FOR USER                                            //
+    // ***************************************************************** //
+
+    // einmalig alle Freunde eines Nutzers zählen ---> für Repo/ViewModel
     @Query("""
     SELECT COUNT(*) FROM friendships 
     WHERE (userIdA = :userId OR userIdB = :userId) 
       AND status = 'ACCEPTED'
   """)
     suspend fun countFriends(userId: String): Int
-
-    // Timestamp in >>lastInteractionAt<< einer friendship updaten, wenn die User interagieren ---> für Repository on interaction event
-    @Query("UPDATE friendships SET lastInteractionAt = :ts WHERE userIdA = :a AND userIdB = :b")
-    suspend fun updateLastInteraction(a: String, b: String, ts: Long)
-
-    // optional: Freundschaftanfragen anzeigen (wenn status == PENDING) ---> für ViewModel
-    @Query("""
-    SELECT * FROM friendships 
-    WHERE (userIdA = :userId OR userIdB = :userId) 
-      AND status = 'PENDING'
-    ORDER BY createdAt DESC
-  """)
-    fun observePendingForUser(userId: String): Flow<List<Friendship>>
 
     // ***************************************************************** //
     // DELETE                                                            //

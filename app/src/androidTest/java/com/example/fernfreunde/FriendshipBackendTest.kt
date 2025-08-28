@@ -51,7 +51,7 @@ class FriendshipBackendTest {
             bio = null,
             createdAt = System.currentTimeMillis()
         )
-        userDao.upsertUser(emily)
+        userDao.upsert(emily)
 
         val brianna = User(
             userId = "brianna",
@@ -61,18 +61,18 @@ class FriendshipBackendTest {
             bio = null,
             createdAt = System.currentTimeMillis()
         )
-        userDao.upsertUser(emily)
+        userDao.upsert(emily)
 
         // Add friendship
         val f = Friendship(userIdA = "emily", userIdB = "brianna", status = FriendshipStatus.ACCEPTED, createdAt = System.currentTimeMillis())
         friendshipDao.insert(f)
 
-        val friendIds = friendshipDao.observeFriendsForUser("alice").first()
-        assertTrue("bob should be in alice's friend list", friendIds.contains("bob"))
+        val friendIds = friendshipDao.getFriendIdsForUser("emily").first()
+        assertTrue("brianna should be in emily's friend list", friendIds.contains("brianna"))
 
         // Remove
-        friendshipDao.delete("alice", "bob")
-        val after = friendshipDao.getFriendIds("alice")
-        assertFalse(after.contains("bob"))
+        friendshipDao.deleteFriendship("emily", "brianna")
+        val after = friendshipDao.getFriendIdsForUser("emily")
+        assertFalse(after.contains("brianna"))
     }
 }

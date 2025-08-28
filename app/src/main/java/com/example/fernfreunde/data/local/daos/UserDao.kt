@@ -14,7 +14,7 @@ interface UserDao {
     // ***************************************************************** //
 
     @Upsert
-    suspend fun upsertUser(user: User)
+    suspend fun upsert(user: User)
 
     // ***************************************************************** //
     // GET/OBSERVE USERS                                                 //
@@ -23,20 +23,20 @@ interface UserDao {
     // für einmalige lesende Zugriffe (wird asynchron in Coroutine ausgeführt, da suspend fun)
     // ---> für Worker, Repository, UseCase (keine UI!)
     @Query("SELECT * FROM users WHERE userId = :userId LIMIT 1")
-    suspend fun getUserSyncById(userId: String): User?
+    suspend fun getUserById(userId: String): User?
 
-    // für automatische Updates wenn sich was in der DB ändert, liefert kontinuierlich aktuelle Daten (wegen Flow<>)
-    // ---> für ViewModel (UI), z.B. ProfileScreen
-    @Query("SELECT * FROM users WHERE userid = :userId LIMIT 1")
-    fun observeUserById(userId: String): Flow<User?>
+    @Query("SELECT * FROM users WHERE userId IN (:ids)")
+    suspend fun getUsersByIds(ids: List<String>): List<User>
 
     // User nach username finden, z.B. bei Registration
     // ---> für Repository, UseCase
     @Query("SELECT * FROM users WHERE username = :username LIMIT 1")
     suspend fun findUserByUsername(username: String): User?
 
-    @Query("SELECT * FROM users WHERE userId IN (:ids)")
-    suspend fun GetUserByIds(ids: List<String>): List<User>
+    // für automatische Updates wenn sich was in der DB ändert, liefert kontinuierlich aktuelle Daten (wegen Flow<>)
+    // ---> für ViewModel (UI), z.B. ProfileScreen
+    @Query("SELECT * FROM users WHERE userid = :userId LIMIT 1")
+    fun observeUserById(userId: String): Flow<User?>
 
     @Query("SELECT * FROM users ORDER BY username")
     fun observeAllUsers(): Flow<List<User>>
