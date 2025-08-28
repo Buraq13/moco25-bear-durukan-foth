@@ -1,20 +1,27 @@
 package com.example.fernfreunde.data.local.daos
 
+import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.fernfreunde.data.local.entities.Friendship
 import kotlinx.coroutines.flow.Flow
 
+@Dao
 interface FriendshipDao {
+
+    // ***************************************************************** //
+    // INSERT FRIENDSHIPS                                                //
+    // ***************************************************************** //
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(friendship: Friendship)
 
-    @Query("DELETE FROM friendships WHERE userIdA = :a AND userIdB = :b")
-    suspend fun deleteFriendship(a: String, b: String)
+    // ***************************************************************** //
+    // GET/OBSERVE FRIENDSHIPS                                           //
+    // ***************************************************************** //
 
-    // einamlig überprüfen, ob eine Freundschaft existiert ---> für Repo/UseCase
+    // einmalig überprüfen, ob eine Freundschaft existiert ---> für Repo/UseCase
     @Query("SELECT * FROM friendships WHERE userIdA = :a AND userIdB = :b LIMIT 1")
     suspend fun getFriendshipSync(a: String, b: String): Friendship?
 
@@ -47,4 +54,11 @@ interface FriendshipDao {
     ORDER BY createdAt DESC
   """)
     fun observePendingForUser(userId: String): Flow<List<Friendship>>
+
+    // ***************************************************************** //
+    // DELETE                                                            //
+    // ***************************************************************** //
+
+    @Query("DELETE FROM friendships WHERE userIdA = :a AND userIdB = :b")
+    suspend fun deleteFriendship(a: String, b: String)
 }

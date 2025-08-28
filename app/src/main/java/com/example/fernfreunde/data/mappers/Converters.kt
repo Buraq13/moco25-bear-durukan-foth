@@ -1,6 +1,7 @@
 package com.example.fernfreunde.data.mappers
 
 import androidx.room.TypeConverter
+import com.example.fernfreunde.data.local.entities.FriendshipStatus
 import org.json.JSONArray
 
 enum class SyncStatus { PENDING, SYNCED, FAILED }
@@ -38,4 +39,15 @@ class Converters {
 
     @TypeConverter
     fun syncStatusToString(status: SyncStatus?): String? = status?.name
+
+    // ***************************************************************** //
+    // FriendshipStatus <-> String Converters                            //
+    // ***************************************************************** //
+
+    @TypeConverter
+    fun stringToFriendshipStatus(value: String?): FriendshipStatus? =
+        value?.let { FriendshipStatus.valueOf(it) }
+
+    @TypeConverter
+    fun friendshipStatusToString(status: FriendshipStatus?): String? = status?.name
 }

@@ -2,7 +2,7 @@ package com.example.fernfreunde.data.remote
 
 import android.net.Uri
 import com.example.fernfreunde.data.remote.dtos.PostDto
-import com.example.fernfreunde.other.Constants.POST_COLLECTION
+import com.example.fernfreunde.data.other.Constants.POST_COLLECTION
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -15,7 +15,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
-class FirestoreDataSource {
+class FirestorePostDataSource {
 
     private val firestore = FirebaseFirestore.getInstance()
     private val storage: FirebaseStorage = FirebaseStorage.getInstance()

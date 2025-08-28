@@ -10,7 +10,7 @@ import androidx.room.PrimaryKey
 )
 data class User(
     @PrimaryKey
-    val userId: String,             // UUID-String
+    val userId: String,             // UUID-String -> entspricht FirebaseAuth.currentUser.uid
     var username: String,
     var displayName: String,
     var profileImageUrl: String?,   // remote URL (Firebase Storage)

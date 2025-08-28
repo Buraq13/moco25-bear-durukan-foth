@@ -4,7 +4,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.fernfreunde.data.local.daos.PostDao
 import com.example.fernfreunde.data.mappers.toDto
-import com.example.fernfreunde.data.remote.FirestoreDataSource
+import com.example.fernfreunde.data.remote.FirestorePostDataSource
 import com.google.firebase.storage.FirebaseStorage
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -19,7 +19,7 @@ class UploadWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val postDao: PostDao,
-    private val firestoreDataSource: FirestoreDataSource,
+    private val firestorePostDataSource: FirestorePostDataSource,
     private val storage: FirebaseStorage = FirebaseStorage.getInstance()
 ) : CoroutineWorker(context, params) {
 
@@ -47,7 +47,7 @@ class UploadWorker @AssistedInject constructor(
         // mediaRemoteUrl hinzugefügt
         try {
             if (mediaUri != null) {
-                val downloadUrl = firestoreDataSource.createPost(local.toDto(), mediaUri)
+                val downloadUrl = firestorePostDataSource.createPost(local.toDto(), mediaUri)
                 postDao.updateAfterSync(postId, postId, downloadUrl, SyncStatus.SYNCED, System.currentTimeMillis())
             }
             Result.success()

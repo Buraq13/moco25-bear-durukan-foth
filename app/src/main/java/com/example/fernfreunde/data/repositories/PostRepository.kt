@@ -13,7 +13,7 @@ import com.example.fernfreunde.data.local.entities.Participation
 import com.example.fernfreunde.data.local.entities.Post
 import com.example.fernfreunde.data.mappers.SyncStatus
 import com.example.fernfreunde.data.mappers.toEntity
-import com.example.fernfreunde.data.remote.FirestoreDataSource
+import com.example.fernfreunde.data.remote.FirestorePostDataSource
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +30,7 @@ class PostRepository @Inject constructor(
     private val postDao: PostDao,
     private val dailyChallengeDao: DailyChallengeDao,
     private val participationDao: ParticipationDao,
-    private val firestoreDataSource: FirestoreDataSource,
+    private val firestorePostDataSource: FirestorePostDataSource,
     private val workManager: WorkManager,
     private val auth: FirebaseAuth,
     @ApplicationContext private val context: Context
@@ -60,11 +60,7 @@ class PostRepository @Inject constructor(
             dailyChallengeDao.getDefaultForDate(date)
         }
 
-        val maxAllowed = dailyChallenge?.maxPostsPerUser ?: 1
-
-        if (maxAllowed == null) {
-            return@withContext true
-        }
+        val maxAllowed = dailyChallenge?.maxPostsPerUser ?: return@withContext true
 
         val currentCount = postDao.countPostsForUserInChallenge(userId, date, challengeId)
         currentCount < maxAllowed
@@ -169,7 +165,7 @@ class PostRepository @Inject constructor(
     // One-Shot Synchronisierung remote <=> local ---> kann manuell von einem SyncService oder beim AppStart aufgerufen werden (optional)
     // holt einmalig alle Posts der angegebenen friendsIds aus Firestore und schreibt die in die lokale Room Datenbank
     suspend fun syncFriendsPostsRemoteToLocal(friendIds: List<String>) = withContext(Dispatchers.IO) {
-        val remotePosts = firestoreDataSource.getFriendsPosts(friendIds)
+        val remotePosts = firestorePostDataSource.getFriendsPosts(friendIds)
         val entities = remotePosts.map { it.toEntity() }
         if (entities.isNotEmpty()) {
             postDao.insertAll(entities)

@@ -19,9 +19,20 @@ import androidx.room.Index
             parentColumns = ["userId"],
             childColumns = ["userId"],
             onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = Post::class,
+            parentColumns = ["postLocalId"],
+            childColumns = ["postLocalId"],
+            onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = ["userId"])]
+    indices = [
+        Index(value = ["userId"]),
+        Index(value = ["date"]),
+        Index(value = ["challengeId"]),
+        Index(value = ["postLocalId"])
+    ]
 )
 data class Participation(
     val userId: String,           // FK-Reference to User.userId
