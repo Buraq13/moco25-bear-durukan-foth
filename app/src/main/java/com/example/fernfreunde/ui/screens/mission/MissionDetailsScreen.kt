@@ -1,4 +1,4 @@
-package com.example.fernfreunde.ui
+package com.example.fernfreunde.ui.screens.mission
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

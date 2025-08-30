@@ -1,4 +1,4 @@
-package com.example.fernfreunde.ui
+package com.example.fernfreunde.ui.screens.upload
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
