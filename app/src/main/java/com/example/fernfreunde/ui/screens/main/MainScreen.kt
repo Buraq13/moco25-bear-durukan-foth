@@ -2,42 +2,29 @@ package com.example.fernfreunde.ui.screens.main
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.material3.Scaffold
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
-
-
-import com.example.fernfreunde.ui.components.feed.MissionBanner
 import com.example.fernfreunde.ui.components.feed.PostCardPlaceholder
 import com.example.fernfreunde.ui.components.navigation.BottomBar
 import com.example.fernfreunde.ui.components.navigation.NavItem
-import com.example.fernfreunde.ui.components.navigation.TopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     missionText: String = "Today's Mission: Share a photo of your workspace.",
-    onFriendsClick: () -> Unit,
-    onUploadClick: () -> Unit,
-    onProfileClick: () -> Unit,
+    currentRoute: String? = null,
+    onFriendsClick: () -> Unit = {},
+    onUploadClick:  () -> Unit = {},
+    onProfileClick: () -> Unit = {},
+    onMissionClick: () -> Unit = {},       // <— neu
 ) {
     Scaffold(
-        topBar = { TopBar(title = "MissionMate") },
+        topBar = { TopAppBar(title = { Text("MissionMate") }) },
         bottomBar = {
-            BottomBar(current = NavItem.Upload) { item ->
+            BottomBar(currentRoute = currentRoute) { item ->
                 when (item) {
                     NavItem.Friends -> onFriendsClick()
                     NavItem.Upload  -> onUploadClick()
@@ -48,6 +35,7 @@ fun MainScreen(
     ) { innerPadding ->
         FeedContent(
             missionText = missionText,
+            onMissionClick = onMissionClick,                 // <— weiterreichen
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -58,6 +46,7 @@ fun MainScreen(
 @Composable
 private fun FeedContent(
     missionText: String,
+    onMissionClick: () -> Unit,                              // <— neu
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -65,10 +54,29 @@ private fun FeedContent(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { MissionBanner(missionText = missionText) }
-        items(count = 6, key = { it }, contentType = { "post" }) {
-            PostCardPlaceholder()
+        item { MissionBanner(missionText = missionText, onClick = onMissionClick) } // <—
+        items(count = 6, key = { it }, contentType = { "post" }) { PostCardPlaceholder() }
+        item { Spacer(Modifier.height(24.dp)) }
+    }
+}
+
+@Composable
+private fun MissionBanner(missionText: String, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(text = "Today's Mission", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = missionText,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(onClick = onClick) { Text("View mission") }   // <—
         }
-        item { Spacer(modifier = Modifier.height(24.dp)) }
     }
 }

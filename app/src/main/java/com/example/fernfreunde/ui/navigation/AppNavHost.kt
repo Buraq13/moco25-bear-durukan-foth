@@ -1,34 +1,25 @@
 package com.example.fernfreunde.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.compose.runtime.getValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-
-// Screens importieren – Pfade bitte exakt so lassen, sonst anpassen falls deine package-Namen abweichen
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.fernfreunde.ui.screens.main.MainScreen
 import com.example.fernfreunde.ui.screens.friends.FriendsListScreen
 import com.example.fernfreunde.ui.screens.upload.UploadScreen
 import com.example.fernfreunde.ui.screens.profile.ProfileScreen
 import com.example.fernfreunde.ui.screens.settings.SettingsScreen
 import com.example.fernfreunde.ui.screens.mission.MissionDetailsScreen
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.fernfreunde.ui.theme.FernfreundeTheme
-
+import androidx.navigation.NavHostController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 
 @Composable
 fun AppNavHost() {
     val nav = rememberNavController()
-
-    // Helfer für BottomBar-Navigation (singleTop + State)
-    fun go(route: String) {
-        nav.navigate(route) {
-            popUpTo(nav.graph.findStartDestination().id) { saveState = true }
-            launchSingleTop = true
-            restoreState = true
-        }
-    }
+    val backstackEntry by nav.currentBackStackEntryAsState()
+    val currentRoute = backstackEntry?.destination?.route
 
     NavHost(
         navController = nav,
@@ -36,9 +27,11 @@ fun AppNavHost() {
     ) {
         composable(Routes.MAIN) {
             MainScreen(
-                onFriendsClick = { go(Routes.FRIENDS) },
-                onUploadClick  = { go(Routes.UPLOAD) },
-                onProfileClick = { go(Routes.PROFILE) }
+                currentRoute = currentRoute,
+                onFriendsClick = { nav.go(Routes.FRIENDS) },
+                onUploadClick  = { nav.go(Routes.UPLOAD)  },
+                onProfileClick = { nav.go(Routes.PROFILE) },
+                onMissionClick = { nav.go(Routes.MISSION) }    // <— neu
             )
         }
         composable(Routes.FRIENDS) { FriendsListScreen() }
@@ -49,10 +42,11 @@ fun AppNavHost() {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun AppNavHostPreview() {
-    FernfreundeTheme {
-        AppNavHost()
+/** Smartes, wiederverwendbares Navigieren (Tabs verhalten sich wie erwartet) */
+private fun NavHostController.go(route: String) {
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
     }
 }
