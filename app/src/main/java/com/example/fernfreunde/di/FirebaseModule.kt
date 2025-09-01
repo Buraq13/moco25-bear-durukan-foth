@@ -10,6 +10,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.example.fernfreunde.data.remote.dataSources.FirestoreUserDataSource
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -30,4 +31,11 @@ object FirebaseModule {
     @Provides
     @Singleton
     fun provideFirestorePostDataSource(): FirestorePostDataSource = FirestorePostDataSource()
+
+    @Provides
+    @Singleton
+    fun provideFirestoreUserDataSource(
+        firestore: FirebaseFirestore,
+        storage: FirebaseStorage
+    ): FirestoreUserDataSource = FirestoreUserDataSource(firestore, storage)
 }

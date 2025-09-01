@@ -17,9 +17,5 @@ abstract class RemoteBindings {
 
     @Binds
     @Singleton
-    abstract fun bindUserRemote(impl: FirestoreUserDataSource): FirestoreUserDataSource
-
-    @Binds
-    @Singleton
     abstract fun bindFriendshipRemote(impl: FirestoreFriendshipDataSource): IFirestoreFriendshipDataSource
 }
