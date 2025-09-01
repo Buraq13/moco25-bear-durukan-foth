@@ -1,5 +1,6 @@
 package com.example.fernfreunde.data.repositories
 
+import android.net.Uri
 import androidx.room.withTransaction
 import com.example.fernfreunde.data.mappers.toEntity
 import kotlinx.coroutines.Dispatchers
@@ -116,4 +117,7 @@ class UserRepository @Inject constructor(
         // optional User auch in Firebase löschen:
         // remote?.deleteUser(userId)
     }
+    suspend fun uploadProfilePicture(userId: String, uri: Uri): String {
+        val downloadUrl = remote?.uploadProfileImage(userId, uri) ?: ""
+        return downloadUrl}
 }
