@@ -4,34 +4,34 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.fernfreunde.ui.navigation.Routes
 
-enum class NavItem { Friends, Upload, Profile }
+enum class NavItem(
+    val label: String,
+    val route: String,
+    val icon: ImageVector = Icons.Outlined.Group // default, wird überschrieben
+) {
+    Friends("Friends", Routes.FRIENDS, Icons.Outlined.Group),
+    Upload ("Upload" , Routes.UPLOAD , Icons.Outlined.AddCircle),
+    Profile("Profile", Routes.PROFILE, Icons.Outlined.Person);
+}
 
 @Composable
-fun BottomBar(current: NavItem, onSelect: (NavItem) -> Unit) {
+fun BottomBar(
+    currentRoute: String?,
+    onItemSelected: (NavItem) -> Unit,
+) {
     NavigationBar {
-        NavigationBarItem(
-            selected = current == NavItem.Friends,
-            onClick = { onSelect(NavItem.Friends) },
-            icon = { Icon(Icons.Outlined.Group, contentDescription = "Friends") },
-            label = { Text("Friends") }
-        )
-        NavigationBarItem(
-            selected = current == NavItem.Upload,
-            onClick = { onSelect(NavItem.Upload) },
-            icon = { Icon(Icons.Outlined.AddCircle, contentDescription = "Upload") },
-            label = { Text("Upload") }
-        )
-        NavigationBarItem(
-            selected = current == NavItem.Profile,
-            onClick = { onSelect(NavItem.Profile) },
-            icon = { Icon(Icons.Outlined.Person, contentDescription = "Profile") },
-            label = { Text("Profile") }
-        )
+        NavItem.values().forEach { item ->
+            NavigationBarItem(
+                selected = item.route == currentRoute,
+                onClick = { onItemSelected(item) },
+                icon = { Icon(item.icon, contentDescription = item.label) },
+                label = { Text(item.label) },
+            )
+        }
     }
 }

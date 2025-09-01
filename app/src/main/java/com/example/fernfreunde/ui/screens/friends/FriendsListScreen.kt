@@ -1,26 +1,37 @@
-package com.example.fernfreunde.ui
+package com.example.fernfreunde.ui.screens.friends
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-//import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.fernfreunde.ui.components.friends.FriendItem
 import com.example.fernfreunde.ui.components.navigation.BottomBar
 import com.example.fernfreunde.ui.components.navigation.NavItem
-import com.example.fernfreunde.ui.components.friends.FriendItem
 import com.example.fernfreunde.ui.components.navigation.TopBar
+import com.example.fernfreunde.ui.navigation.Routes
+import com.example.fernfreunde.ui.theme.FernfreundeTheme
 
-//@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FriendsListScreen() {
+fun FriendsListScreen(
+    onFriendsClick: () -> Unit = {},
+    onUploadClick: () -> Unit = {},
+    onProfileClick: () -> Unit = {},
+) {
     Scaffold(
-        topBar = { TopBar("Friends") },
+        topBar = { TopBar(title = "Friends") },
         bottomBar = {
-            BottomBar(current = NavItem.Upload) { /* TODO: später Navigation */ }
+            BottomBar(currentRoute = Routes.FRIENDS) { item ->
+                when (item) {
+                    NavItem.Friends -> onFriendsClick()
+                    NavItem.Upload  -> onUploadClick()
+                    NavItem.Profile -> onProfileClick()
+                }
+            }
         }
     ) { innerPadding ->
         FriendsList(
@@ -35,22 +46,25 @@ fun FriendsListScreen() {
 private fun FriendsList(modifier: Modifier = Modifier) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(all = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(count = 12, key = { it }, contentType = { "friend" }) { index ->
             FriendItem(
                 name = "Friend ${index + 1}",
-                handle = "@user${index + 1}"
+                handle = "@user${index + 1}",
+                // kein avatarShape mehr im aktuellen FriendItem
+                modifier = Modifier.fillMaxWidth()
             )
         }
         item { Spacer(Modifier.height(24.dp)) }
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 private fun FriendsListPreview() {
-    MaterialTheme { FriendsListScreen() }
+    FernfreundeTheme {
+        FriendsListScreen()
+    }
 }
