@@ -147,7 +147,7 @@ class PostRepository @Inject constructor(
     }
 
     // ***************************************************************** //
-    // OBSERVE POSTS                                             //
+    // OBSERVE POSTS                                                     //
     // ***************************************************************** //
 
     // Posts aller Freunde im Feed anzeigen ---> für ViewModel
