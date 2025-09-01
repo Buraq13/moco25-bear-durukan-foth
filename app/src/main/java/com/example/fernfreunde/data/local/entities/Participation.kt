@@ -31,7 +31,8 @@ import androidx.room.Index
         Index(value = ["userId"]),
         Index(value = ["date"]),
         Index(value = ["challengeId"]),
-        Index(value = ["postLocalId"])
+        Index(value = ["postLocalId"]),
+        Index(value = ["date", "challengeId"])
     ]
 )
 data class Participation(

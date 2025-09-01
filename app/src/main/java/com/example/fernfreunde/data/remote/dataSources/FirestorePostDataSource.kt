@@ -1,4 +1,4 @@
-package com.example.fernfreunde.data.remote
+package com.example.fernfreunde.data.remote.dataSources
 
 import android.net.Uri
 import com.example.fernfreunde.data.remote.dtos.PostDto

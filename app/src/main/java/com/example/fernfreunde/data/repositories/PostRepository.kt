@@ -13,7 +13,7 @@ import com.example.fernfreunde.data.local.entities.Participation
 import com.example.fernfreunde.data.local.entities.Post
 import com.example.fernfreunde.data.mappers.SyncStatus
 import com.example.fernfreunde.data.mappers.toEntity
-import com.example.fernfreunde.data.remote.FirestorePostDataSource
+import com.example.fernfreunde.data.remote.dataSources.FirestorePostDataSource
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers

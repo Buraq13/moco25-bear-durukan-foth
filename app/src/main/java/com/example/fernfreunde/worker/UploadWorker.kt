@@ -4,7 +4,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.fernfreunde.data.local.daos.PostDao
 import com.example.fernfreunde.data.mappers.toDto
-import com.example.fernfreunde.data.remote.FirestorePostDataSource
+import com.example.fernfreunde.data.remote.dataSources.FirestorePostDataSource
 import com.google.firebase.storage.FirebaseStorage
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -12,15 +12,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.lang.Exception
 import androidx.core.net.toUri
+import androidx.hilt.work.HiltWorker
 import com.example.fernfreunde.data.mappers.SyncStatus
 
-// @HiltWorker
+@HiltWorker
 class UploadWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val postDao: PostDao,
     private val firestorePostDataSource: FirestorePostDataSource,
-    private val storage: FirebaseStorage = FirebaseStorage.getInstance()
+    private val storage: FirebaseStorage
 ) : CoroutineWorker(context, params) {
 
     companion object {

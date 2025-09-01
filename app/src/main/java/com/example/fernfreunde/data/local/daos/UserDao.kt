@@ -16,6 +16,9 @@ interface UserDao {
     @Upsert
     suspend fun upsert(user: User)
 
+    @Upsert
+    suspend fun upsertAll(users: List<User>)
+
     // ***************************************************************** //
     // GET/OBSERVE USERS                                                 //
     // ***************************************************************** //
@@ -41,5 +44,10 @@ interface UserDao {
     @Query("SELECT * FROM users ORDER BY username")
     fun observeAllUsers(): Flow<List<User>>
 
+    // ***************************************************************** //
+    // DELETE USERS                                                 //
+    // ***************************************************************** //
 
+    @Query("DELETE FROM users WHERE userId = :userId")
+    suspend fun deleteUser(userId: String)
 }

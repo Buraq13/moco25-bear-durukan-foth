@@ -15,5 +15,5 @@ data class User(
     var displayName: String,
     var profileImageUrl: String?,   // remote URL (Firebase Storage)
     var bio: String?,
-    val createdAt: Long
+    val createdAt: Long?
 )
