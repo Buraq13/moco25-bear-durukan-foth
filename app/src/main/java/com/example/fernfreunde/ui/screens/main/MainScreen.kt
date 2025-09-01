@@ -19,7 +19,7 @@ fun MainScreen(
     onFriendsClick: () -> Unit = {},
     onUploadClick:  () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onMissionClick: () -> Unit = {},       // <— neu
+    onMissionClick: () -> Unit = {},
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("MissionMate") }) },
@@ -32,13 +32,11 @@ fun MainScreen(
                 }
             }
         }
-    ) { innerPadding ->
+    ) { inner ->
         FeedContent(
             missionText = missionText,
-            onMissionClick = onMissionClick,                 // <— weiterreichen
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier = Modifier.fillMaxSize().padding(inner),
+            onMissionClick = onMissionClick
         )
     }
 }
@@ -46,15 +44,15 @@ fun MainScreen(
 @Composable
 private fun FeedContent(
     missionText: String,
-    onMissionClick: () -> Unit,                              // <— neu
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onMissionClick: () -> Unit
 ) {
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { MissionBanner(missionText = missionText, onClick = onMissionClick) } // <—
+        item { MissionBanner(missionText = missionText, onClick = onMissionClick) }
         items(count = 6, key = { it }, contentType = { "post" }) { PostCardPlaceholder() }
         item { Spacer(Modifier.height(24.dp)) }
     }
@@ -76,7 +74,7 @@ private fun MissionBanner(missionText: String, onClick: () -> Unit) {
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(Modifier.height(12.dp))
-            OutlinedButton(onClick = onClick) { Text("View mission") }   // <—
+            OutlinedButton(onClick = onClick) { Text("View mission") }   // <--------
         }
     }
 }

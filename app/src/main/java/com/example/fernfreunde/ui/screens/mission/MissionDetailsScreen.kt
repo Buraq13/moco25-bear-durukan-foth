@@ -7,44 +7,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.fernfreunde.ui.components.navigation.TopBar
+import com.example.fernfreunde.ui.theme.FernfreundeTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MissionDetailsScreen(
-    title: String = "Today's Mission",
-    description: String = "Share a photo of your workspace.",
     onBack: () -> Unit = {},
-    onStartMission: () -> Unit = {}
 ) {
     Scaffold(
-        topBar = { TopBar(title) }
-    ) { inner ->
+        topBar = { TopBar(title = "Mission", onBack = onBack) }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(inner)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(innerPadding)
+                .padding(16.dp)
         ) {
-            Text(text = title, style = MaterialTheme.typography.headlineSmall)
-            Text(text = description, style = MaterialTheme.typography.bodyLarge)
-
-            Spacer(Modifier.height(24.dp))
-
-            Button(
-                onClick = onStartMission,
-                modifier = Modifier.fillMaxWidth()
-            ) { Text("Start mission") }
-
-            TextButton(
-                onClick = onBack,
-                modifier = Modifier.fillMaxWidth()
-            ) { Text("Back") }
+            Text("Mission details placeholder", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(12.dp))
+            Text("Explain the mission, rules, time left, etc.")
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
 private fun MissionDetailsPreview() {
-    MaterialTheme { MissionDetailsScreen() }
+    FernfreundeTheme { MissionDetailsScreen() }
 }
