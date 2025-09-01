@@ -91,9 +91,16 @@ class FirestoreUserDataSource(
     }
 
     override suspend fun uploadProfileImage(userId: String, mediaUri: Uri): String {
-        TODO("Not yet implemented")
-    }
 
+        val ref = storage.reference.child("profile_images/$userId.jpg")
+        ref.putFile(mediaUri).await()
+
+        val downloadUrl = ref.downloadUrl.await().toString()
+
+        users.document(userId).update("profileImageUrl", downloadUrl).await()
+
+        return downloadUrl
+    }
     // ***************************************************************** //
     // SHOW REALTIME CHANGES                                             //
     // ***************************************************************** //
