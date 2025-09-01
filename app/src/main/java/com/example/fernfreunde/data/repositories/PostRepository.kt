@@ -66,13 +66,12 @@ class PostRepository @Inject constructor(
         currentCount < maxAllowed
     }
 
-
     // ***************************************************************** //
     // CREATE NEW POSTS                                                  //
     // ***************************************************************** //
 
     // lokal neuen Post erstellen und der Warteschlange eines Upload Workers hinzufügen
-    // ---> wird von CreatePostViewModel aufgerufen, nachdem Eingabe validiert wurde
+    // ---> für CreatePostViewModel, aber vorher Eingabe validieren!
     suspend fun createPost(userId: String, userName: String?, date: String, challengeId: String, text: String?, mediaUri: Uri?) {
         val postId = UUID.randomUUID().toString()
 
@@ -150,7 +149,8 @@ class PostRepository @Inject constructor(
     // OBSERVE POSTS                                                     //
     // ***************************************************************** //
 
-    // Posts aller Freunde im Feed anzeigen ---> für ViewModel
+    // Posts aller Freunde im Feed anzeigen
+    // ---> für FeedViewModel, liefert automatische Updates wenn ein Freund einen neuen Post hochlädt
     fun observeFeedForUser(challengeDate: String, challengeId: String, friendIds: List<String>): Flow<List<Post>> {
         if (friendIds.isEmpty()) {
             return flowOf(emptyList())

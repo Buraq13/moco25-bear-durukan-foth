@@ -15,9 +15,20 @@ class FirestoreFriendshipDataSource(
 
     private val friendships = firestore.collection(FRIENDSHIP_COLLECTION)
 
+    // ***************************************************************** //
+    // HELPER: CANONICAL PAIR                                            //
+    // -> stellt sicher, dass (a,b) immer in derselben Reihenfolge       //
+    // gespeichert wird (um zu verhindern, dass eine doppelte Friendship //
+    // mit FreundA, FreundB und FreundB, FreundA gespeichert wird)       //
+    // ***************************************************************** //
+
     private fun canonicalId(a: String, b: String): Pair<String, String> {
         return if (a <= b) Pair(a, b) else Pair(b, a)
     }
+
+    // ***************************************************************** //
+    // READ OPERATIONS                                                   //
+    // ***************************************************************** //
 
     override suspend fun getFriendshipsForUser(userId: String): List<FriendshipDto> {
         val queryUserA = friendships.whereEqualTo("userIdA", userId).get()
@@ -40,6 +51,10 @@ class FirestoreFriendshipDataSource(
         return ids.toList()
     }
 
+    // ***************************************************************** //
+    // FRIENDSHIP-REQUESTS & REMOVING FRIENDS                            //
+    // ***************************************************************** //
+
     override suspend fun sendFriendRequest(fromUserId: String, toUserId: String) {
         TODO("Not yet implemented")
     }
@@ -58,6 +73,11 @@ class FirestoreFriendshipDataSource(
         TODO("Not yet implemented")
     }
 
+    // ***************************************************************** //
+    // LISTENER FOR REALTIME UPDATES                                     //
+    // ***************************************************************** //
+
+    // maybe noch anpassen
     override fun listenFriendships(userId: String) = callbackFlow<List<FriendshipDto>> {
         // Helper: query both sides in a suspend function
         suspend fun queryBoth(): List<FriendshipDto> {

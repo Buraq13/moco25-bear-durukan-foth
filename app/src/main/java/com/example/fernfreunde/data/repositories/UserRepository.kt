@@ -27,9 +27,9 @@ class UserRepository @Inject constructor(
     private val remote: com.example.fernfreunde.data.remote.dataSources.FirestoreUserDataSource? = null
 ) {
 
-    // --------------------------------------------------------------------------//
-    // READ/OBSERVE USERS                                                        //
-    // --------------------------------------------------------------------------//
+    // ***************************************************************** //
+    // READ/OBSERVE USERS                                                //
+    // ***************************************************************** //
 
     // liefert einen Flow für einen User (wird automatisch geupdatet, falls sich was in Room ändert)
     // ---> für Viewmodel (z.B. Profile Screen, um Details für User anzuzeigen)
@@ -81,16 +81,16 @@ class UserRepository @Inject constructor(
 //        userDao.searchByNameOrUsername("%${query}%")
 //    }
 
-    // --------------------------------------------------------------------------//
-    // WRITE/UPDATE USERS                                                        //
-    // --------------------------------------------------------------------------//
+    // ***************************************************************** //
+    // CREATE/UPDATE USERS                                               //
+    // ***************************************************************** //
 
     // muss noch implementiert werden
 
-    // -------------------------------------------------------------------------//
-    // HELPER: SYNCHRONICE ROOM <-> FIREBASE                                    //
-    // -> holt alle User von Firebase und speichert sie lokal in Room           //
-    // -------------------------------------------------------------------------//
+    // ***************************************************************** //
+    // HELPER: SYNCHRONICE ROOM <-> FIREBASE                             //
+    // -> holt alle User von Firebase und speichert sie lokal in Room    //
+    // ***************************************************************** //
 
     suspend fun syncUserFromRemote(userId: String) = withContext(Dispatchers.IO) {
         val dto = remote?.getUser(userId) ?: return@withContext
@@ -107,13 +107,13 @@ class UserRepository @Inject constructor(
         }
     }
 
-    // -------------------------------------------------------------------------//
-    // DELETE USERS                                                             //
-    // -------------------------------------------------------------------------//
+    // ***************************************************************** //
+    // DELETE USERS                                                      //
+    // ***************************************************************** //
 
     suspend fun deleteUser(userId: String) = withContext(Dispatchers.IO) {
         userDao.deleteUser(userId)
-        // optionally notify remote
+        // optional User auch in Firebase löschen:
         // remote?.deleteUser(userId)
     }
 }

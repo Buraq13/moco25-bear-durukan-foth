@@ -19,20 +19,21 @@ class FriendshipRepository @Inject constructor(
 
 ) {
 
-    // -------------------------------------------------------------------------//
-    // HELPER: CANONICAL PAIR                                                   //
-    // -> stellt sicher, dass (a,b) immer in derselben Reihenfolge              //
-    // gespeichert wird                                                         //
-    // -------------------------------------------------------------------------//
+    // ***************************************************************** //
+    // HELPER: CANONICAL PAIR                                            //
+    // -> stellt sicher, dass (a,b) immer in derselben Reihenfolge       //
+    // gespeichert wird (um zu verhindern, dass eine doppelte Friendship //
+    // mit FreundA, FreundB und FreundB, FreundA gespeichert wird)       //
+    // ***************************************************************** //
 
     private fun canonicalPair(a: String, b: String): Pair<String, String> {
         return if (a <= b) Pair(a, b) else Pair(b, a)
     }
 
-    // --------------------------------------------------------------------------//
-    // OBSERVE FRIENDS                                                           //
-    // -> für ViewModel (z.B. FriendsSceen) -> Darstellung in UI                 //
-    // --------------------------------------------------------------------------//
+    // ***************************************************************** //
+    // OBSERVE FRIENDS                                                   //
+    // -> für ViewModel (z.B. FriendsSceen) -> Darstellung in UI         //
+    // ***************************************************************** //
 
     // liefert eine vollständige Liste aller Freunde als User-Objekte
     fun observeFriendUsers(userId: String): Flow<List<com.example.fernfreunde.data.local.entities.User>> {
@@ -63,10 +64,11 @@ class FriendshipRepository @Inject constructor(
             }
     }
 
-    // -------------------------------------------------------------------------//
-    // HELPER: SYNCHRONICE ROOM <-> FIREBASE                                    //
-    // -> holt alle Friendships von Firebase und speichert sie lokal in Room    //
-    // -------------------------------------------------------------------------//
+    // ***************************************************************** //
+    // HELPER: SYNCHRONICE ROOM <-> FIREBASE                             //
+    // -> holt alle Friendships von Firebase und speichert sie lokal in  //
+    // Room                                                              //
+    // ***************************************************************** //
 
     suspend fun syncFriendshipsFromRemote(myUserId: String) = withContext(Dispatchers.IO) {
         if (remoteFriendships == null) return@withContext

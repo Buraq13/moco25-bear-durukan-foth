@@ -18,6 +18,10 @@ class FirestoreUserDataSource(
 
     private val users = firestore.collection(USER_COLLECTION)
 
+    // ***************************************************************** //
+    // READ OPERATIONS                                                   //
+    // ***************************************************************** //
+
     override suspend fun getUser(userId: String): UserDto? {
         val snapshot = users.document(userId).get().await()
         return if (snapshot.exists()) {
@@ -30,6 +34,7 @@ class FirestoreUserDataSource(
     override suspend fun getUsers(userIds: List<String>): List<UserDto> {
         if (userIds.isEmpty()) return emptyList()
 
+        // da Firestore für whereIn-Anfragen ein Limit von 10 hat, wird die Anfrage in chunks aufgeteilt
         val chunks = userIds.chunked(10)
         val results = mutableListOf<UserDto>()
         for (chunk in chunks) {
@@ -69,6 +74,10 @@ class FirestoreUserDataSource(
         return all.take(limit)
     }
 
+    // ***************************************************************** //
+    // WRITE OPERATIONS                                                  //
+    // ***************************************************************** //
+
     override suspend fun createOrUpdateUser(user: UserDto) {
         val data = hashMapOf<String, Any?>(
             "userId" to user.userId,
@@ -85,14 +94,21 @@ class FirestoreUserDataSource(
         TODO("Not yet implemented")
     }
 
+    // ***************************************************************** //
+    // SHOW REALTIME CHANGES                                             //
+    // ***************************************************************** //
+
+    // zeigt Echtzeit-Änderungen, z.B. wenn usxername geändert oder Profilbild aktualisiert wurde
     override fun listenUser(userId: String) = callbackFlow<UserDto?> {
-        val registration = users.document(userId).addSnapshotListener { snap, err ->
-            if (err != null) {
-                close(err)
+        // registriert einen listener, der bei jeder Änderung automatisch aufgerufen wird
+        val registration = users.document(userId).addSnapshotListener { snapshot, error ->
+            // wenn ein Fehler auftritt, wird der Flow geschlossen, ansonsten wird ein Ergebnis zurückgegeben
+            if (error != null) {
+                close(error)
                 return@addSnapshotListener
             }
-            if (snap != null && snap.exists()) {
-                trySend(snap.toObject(UserDto::class.java))
+            if (snapshot != null && snapshot.exists()) {
+                trySend(snapshot.toObject(UserDto::class.java))
             } else {
                 trySend(null)
             }
