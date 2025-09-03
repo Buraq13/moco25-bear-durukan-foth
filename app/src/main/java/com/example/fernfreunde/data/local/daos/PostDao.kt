@@ -26,41 +26,24 @@ interface PostDao {
     // ***************************************************************** //
 
     @Query("SELECT * FROM posts WHERE localId = :localId LIMIT 1")
-    fun observePost(localId: String): Flow<Post?>
-
-    @Query("SELECT * FROM posts WHERE localId = :localId LIMIT 1")
     suspend fun getPostSync(localId: String): Post?
-
-    @Query("SELECT * FROM posts WHERE userId = :userId ORDER BY createdAtClient DESC")
-    fun observeAllPostsForUser(userId: String): Flow<List<Post>>
-
-    @Query("""
-        SELECT * FROM posts
-        WHERE userId = :userId
-          AND challengeDate = :challengeDate
-          AND (:challengeId IS NULL OR challengeId = :challengeId)
-        ORDER BY COALESCE(createdAtServer, createdAtClient) DESC
-    """)
-    suspend fun getPostForUserAndChallenge(userId: String, challengeDate: String, challengeId: String?): List<Post>
 
     @Query("""
         SELECT COUNT(*) FROM posts
         WHERE userId = :userId
-          AND challengeDate = :date
-          AND (:challengeId IS NULL OR challengeId = :challengeId)
+          AND challengeId = :challengeId
     """)
-    suspend fun countPostsForUserInChallenge(userId: String, date: String, challengeId: String?): Int
+    suspend fun countPostsForUserAndChallenge(userId: String, challengeId: String?): Int
 
     @Query(
         """
     SELECT * FROM posts
-    WHERE challengeDate = :challengeDate
-    AND (:challengeId IS NULL OR challengeId = :challengeId)
+    WHERE challengeId = :challengeId
     AND userId IN (:userIds)
     ORDER BY COALESCE(createdAtServer, createdAtClient) DESC
     """
     )
-    fun observePostsForChallengeByUsers(challengeDate: String, challengeId: String?, userIds: List<String>): Flow<List<Post>>
+    fun observePostsForChallengeByUsers(challengeId: String?, userIds: List<String>): Flow<List<Post>>
 
     // ***************************************************************** //
     // UPDATE SYNCSTATUS                                                 //

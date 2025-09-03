@@ -9,18 +9,6 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * UserRepository (Offline-first)
- *
- * - Verwaltert lokale User-Daten (Room) und optionales Remote (z.B. Firebase).
- * - Bietet Flows für UI (observe) sowie suspend-Funktionen für One-shot-Abfragen/Updates.
- *
- * Wer ruft diese Methoden:
- * - ViewModel: observeUser(), getUserOnce(), searchUsers()
- * - SyncService / StartupSync: syncUserFromRemote(), syncUsersByIds()
- * - UI/Settings: updateLocalProfile(), uploadProfilePicture() (ggf. remote)
- */
-
 @Singleton
 class UserRepository @Inject constructor(
     private val userDao: com.example.fernfreunde.data.local.daos.UserDao,
@@ -67,20 +55,6 @@ class UserRepository @Inject constructor(
 
         userDao.getUsersByIds(userIds)
     }
-
-    // lokal/remote nach Usern per Username suchen (z.B. um Freunde zu finden)
-//    suspend fun searchUsers(query: String, remoteIfEmpty: Boolean = true): List<com.example.fernfreunde.data.local.entities.UserEntity> = withContext(Dispatchers.IO) {
-//        val local = userDao.searchByNameOrUsername("%${query}%")
-//        if (local.isNotEmpty() || remote == null || !remoteIfEmpty) return@withContext local
-//
-//        // remote search fallback
-//        val remoteRes = remote.searchUsers(query)
-//        val entities = remoteRes.map { it.toEntity() }
-//        appDatabase.withTransaction {
-//            userDao.upsertAll(entities)
-//        }
-//        userDao.searchByNameOrUsername("%${query}%")
-//    }
 
     // ***************************************************************** //
     // CREATE/UPDATE USERS                                               //

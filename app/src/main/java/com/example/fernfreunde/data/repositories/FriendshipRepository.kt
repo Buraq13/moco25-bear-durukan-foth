@@ -64,6 +64,9 @@ class FriendshipRepository @Inject constructor(
             }
     }
 
+    // liefert alle Ids der Freunde
+    suspend fun getFriendIdsForUser(userId: String): List<String> = friendshipDao.getFriendIdsForUser(userId, FriendshipStatus.ACCEPTED)
+
     // ***************************************************************** //
     // HELPER: SYNCHRONICE ROOM <-> FIREBASE                             //
     // -> holt alle Friendships von Firebase und speichert sie lokal in  //

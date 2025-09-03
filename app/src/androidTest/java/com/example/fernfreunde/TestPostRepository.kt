@@ -3,7 +3,6 @@ package com.example.fernfreunde
 import com.example.fernfreunde.data.local.daos.DailyChallengeDao
 import com.example.fernfreunde.data.local.daos.ParticipationDao
 import com.example.fernfreunde.data.local.daos.PostDao
-import com.example.fernfreunde.data.local.entities.DailyChallenge
 import com.example.fernfreunde.data.local.entities.Participation
 import com.example.fernfreunde.data.local.entities.Post
 import com.example.fernfreunde.data.mappers.SyncStatus
@@ -26,13 +25,13 @@ class TestPostRepository(
 
     suspend fun canCreatePost(userId: String, date: String, challengeId: String?): Boolean = withContext(Dispatchers.IO) {
         val daily = if (challengeId != null) {
-            dailyChallengeDao.getDailyChallengeByDateAndId(date, challengeId)
+            dailyChallengeDao.getCached(date, challengeId)
         } else {
             dailyChallengeDao.getDefaultForDate(date)
         }
         val maxAllowed = daily?.maxPostsPerUser ?: 1
         if (maxAllowed == null) return@withContext true
-        val currentCount = postDao.countPostsForUserInChallenge(userId, date, challengeId)
+        val currentCount = postDao.countPostsForUserAndChallenge(userId, date, challengeId)
         currentCount < maxAllowed
     }
 
