@@ -20,6 +20,11 @@ import com.example.fernfreunde.ui.screens.profile.ProfileScreen
 import com.example.fernfreunde.ui.screens.settings.SettingsScreen
 import com.example.fernfreunde.ui.screens.upload.UploadScreen
 import com.example.fernfreunde.ui.theme.FernfreundeTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.example.fernfreunde.feature.media.rememberRecordVideo
 
 @Composable
 fun AppNavHost() {
@@ -49,52 +54,67 @@ fun AppNavHost() {
         composable(Routes.UPLOAD) {
             val inPreview = LocalInspectionMode.current
 
-            // Gallery
+            // Thumbnail-State (für unten links)
+            var lastMedia by rememberSaveable { mutableStateOf<String?>(null) }
+
+            // Galerie (Photo Picker)
             val pickImage =
                 if (inPreview) ({})
-                else rememberMediaPicker(MediaType.Image) { /* TODO: viewModel.onImageChosen(it) */ }
+                else rememberMediaPicker(MediaType.Image) { uri ->
+                    lastMedia = uri?.toString()
+                }
 
-            // Take photo via system intent
+            // Foto aufnehmen (System-Intent)
             val takePhoto =
                 if (inPreview) ({})
-                else rememberTakePhoto { /* TODO: viewModel.onPhotoCaptured(it) */ }
+                else rememberTakePhoto { uri ->
+                    lastMedia = uri?.toString()
+                }
 
-            // Runtime permission (nur außerhalb der Preview initialisieren)
+            // Video aufnehmen (System-Intent)
+            val recordVideo =
+                if (inPreview) ({})
+                else rememberRecordVideo { uri ->
+                    lastMedia = uri?.toString()
+                }
+
+            // Runtime-Permissions (nur außerhalb der Preview initialisieren)
             val cameraPerm = if (inPreview) null else PermissionRequester(Permission.CAMERA)
+            val audioPerm  = if (inPreview) null else PermissionRequester(Permission.RECORD_AUDIO)
 
             UploadScreen(
                 onFriendsClick = { nav.go(Routes.FRIENDS) },
-                onUploadClick  = { nav.go(Routes.MAIN) },   // temporär: zurück zu MAIN
+                onUploadClick  = { nav.go(Routes.MAIN) },
                 onProfileClick = { nav.go(Routes.PROFILE) },
 
                 onOpenGallery  = pickImage,
-                onShutter      = {
+
+                // Tap = Foto
+                onShutter = {
                     if (inPreview) {
                         takePhoto()
                     } else {
                         if (cameraPerm?.granted == true) takePhoto() else cameraPerm?.request()
                     }
                 },
+
+                // Long-Press = Video
+                onShutterLongPress = {
+                    if (inPreview) {
+                        recordVideo()
+                    } else {
+                        if (audioPerm?.granted == true) recordVideo() else audioPerm?.request()
+                    }
+                },
+
                 onSwitchCamera = { /* später CameraX */ },
-                onFlashModeChange = { /* später CameraX */ }
+                onFlashModeChange = { /* später CameraX */ },
+
+                // Thumbnail an Screen weitergeben
+                lastMedia = lastMedia
             )
         }
 
-        composable(Routes.PROFILE) {
-            ProfileScreen(
-                onFriendsClick = { nav.go(Routes.FRIENDS) },
-                onUploadClick  = { nav.go(Routes.UPLOAD)  },
-                onProfileClick = { nav.go(Routes.MAIN) }
-            )
-        }
-
-        composable(Routes.SETTINGS) {
-            SettingsScreen(
-                onFriendsClick = { nav.go(Routes.FRIENDS) },
-                onUploadClick  = { nav.go(Routes.UPLOAD)  },
-                onProfileClick = { nav.go(Routes.PROFILE) }
-            )
-        }
 
         composable(Routes.MISSION) {
             MissionDetailsScreen(
