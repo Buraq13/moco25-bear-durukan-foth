@@ -139,6 +139,22 @@ class FriendsListViewModel @Inject constructor(
         }
     }
 
+    fun removeFriend(friendId: String) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                friendshipRepository.removeFriend(userId, friendId)
+                friendshipRepository.syncFriendshipsFromRemote(userId)
+                loadAllUsers()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
     // ***************************************************************** //
     // LOADING ALL USERS                                                 //
     // ***************************************************************** //

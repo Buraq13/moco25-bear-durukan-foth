@@ -2,15 +2,20 @@ package com.example.fernfreunde.ui.screens.main
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fernfreunde.data.viewmodels.MainScreenViewModel
+import com.example.fernfreunde.ui.components.feed.PostCard
 import com.example.fernfreunde.ui.components.feed.PostCardPlaceholder
+import com.example.fernfreunde.ui.components.feed.PostDisplay
 import com.example.fernfreunde.ui.components.navigation.BottomBar
 import com.example.fernfreunde.ui.components.navigation.NavItem
 
@@ -23,7 +28,14 @@ fun MainScreen(
     onUploadClick:  () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onMissionClick: () -> Unit = {},
+    viewModel: MainScreenViewModel = hiltViewModel()
 ) {
+     LaunchedEffect(Unit) {
+         viewModel.startObservingFeedForCurrentUser()
+     }
+
+    val feed by viewModel.feed.collectAsState()
+
     Scaffold(
         topBar = { TopAppBar(title = { Text("MissionMate") }) },
         bottomBar = {
@@ -38,6 +50,7 @@ fun MainScreen(
     ) { inner ->
         FeedContent(
             missionText = missionText,
+            feed = feed,
             modifier = Modifier.fillMaxSize().padding(inner),
             onMissionClick = onMissionClick
         )
@@ -47,6 +60,7 @@ fun MainScreen(
 @Composable
 private fun FeedContent(
     missionText: String,
+    feed: List<PostDisplay>,
     modifier: Modifier = Modifier,
     onMissionClick: () -> Unit
 ) {
@@ -56,7 +70,19 @@ private fun FeedContent(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item { MissionBanner(missionText = missionText, onClick = onMissionClick) }
-        items(count = 6, key = { it }, contentType = { "post" }) { PostCardPlaceholder() }
+
+        if (feed.isEmpty()) {
+            // Placeholder, wenn Feed Empty ist
+            items(count = 6, key = { it }, contentType = { "post" }) { PostCardPlaceholder() }
+        } else {
+            // echte Posts anzeigen
+            items(items = feed, key = {it.postId}) { post ->
+                PostCard(
+                    post = post
+                )
+            }
+        }
+
         item { Spacer(Modifier.height(24.dp)) }
     }
 }
