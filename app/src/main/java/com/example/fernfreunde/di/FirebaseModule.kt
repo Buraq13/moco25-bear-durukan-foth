@@ -1,6 +1,10 @@
 // file: di/FirebaseModule.kt
 package com.example.fernfreunde.di
 
+import android.app.Application
+import androidx.work.WorkManager
+import com.example.fernfreunde.data.remote.dataSources.FirestoreDailyChallengeDataSource
+import com.example.fernfreunde.data.remote.dataSources.FirestoreFriendshipDataSource
 import com.example.fernfreunde.data.remote.dataSources.FirestorePostDataSource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -38,4 +42,18 @@ object FirebaseModule {
         firestore: FirebaseFirestore,
         storage: FirebaseStorage
     ): FirestoreUserDataSource = FirestoreUserDataSource(firestore, storage)
+
+    @Provides
+    @Singleton
+    fun provideFirestoreFriendshipDataSource(
+        firestore: FirebaseFirestore
+    ): FirestoreFriendshipDataSource = FirestoreFriendshipDataSource(firestore)
+
+    @Provides
+    @Singleton
+    fun provideFirestoreDailyChallengeDataSource(): FirestoreDailyChallengeDataSource = FirestoreDailyChallengeDataSource()
+
+    @Provides
+    @Singleton
+    fun provideWorkManager(app: Application): WorkManager = WorkManager.getInstance(app)
 }
