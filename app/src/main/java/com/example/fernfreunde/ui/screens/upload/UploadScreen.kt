@@ -35,9 +35,6 @@ import com.example.fernfreunde.ui.components.navigation.NavItem
 import com.example.fernfreunde.ui.components.navigation.TopBar
 import com.example.fernfreunde.ui.navigation.Routes
 import com.example.fernfreunde.ui.theme.FernfreundeTheme
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 
 private enum class FlashMode { Auto, On, Off }
 
@@ -52,9 +49,7 @@ fun UploadScreen(
     onShutter: () -> Unit = {},
     onSwitchCamera: () -> Unit = {},
     onOpenGallery: () -> Unit = {},
-    onFlashModeChange: (String) -> Unit = {}, // "auto" | "on" | "off"
-    lastMedia: String? = null,
-    onShutterLongPress: () -> Unit = {}
+    onFlashModeChange: (String) -> Unit = {} // "auto" | "on" | "off"
 ) {
     var flash by remember { mutableStateOf(FlashMode.Auto) }
 
@@ -144,31 +139,25 @@ fun UploadScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 28.dp),
-                onClick = onShutter,
-                onLongPress = onShutterLongPress
+                onClick = onShutter
             )
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ShutterButton(
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {},
-    onLongPress: () -> Unit = {}
+    onClick: () -> Unit = {}
 ) {
     // Äußerer Ring
     Surface(
         modifier = modifier
             .size(76.dp)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongPress
-            ),
+            .clickable(onClick = onClick),
         shape = CircleShape,
         color = Color.Transparent,
-        border = BorderStroke(4.dp, Color.White)
+        border = BorderStroke(width = 4.dp, color = Color.White)
     ) {
         // Zentrierter innerer Kreis
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
