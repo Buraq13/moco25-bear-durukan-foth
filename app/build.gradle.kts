@@ -94,7 +94,6 @@ dependencies {
     // --- Coil (inkl. GIF) ---
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("io.coil-kt:coil-gif:2.4.0")
-    implementation("io.coil-kt:coil-compose:2.6.0")
 
     // --- Dagger Hilt ---
     implementation("com.google.dagger:hilt-android:2.51.1")
