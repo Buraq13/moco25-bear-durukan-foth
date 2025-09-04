@@ -27,7 +27,7 @@ interface FriendshipDao {
 
     // einmalig überprüfen, ob eine Freundschaft existiert ---> für Repo/UseCase
     @Query("SELECT * FROM friendships WHERE userIdA = :a AND userIdB = :b LIMIT 1")
-    suspend fun getFriendshipSync(a: String, b: String): Friendship?
+    suspend fun getFriendships(a: String, b: String): Friendship?
 
     // alle Freunde eines Nutzers anzeigen, bei Änderungen automatisch UI updaten ---> für ViewModel (FriendslistScreen)
     @Query("""
@@ -36,7 +36,7 @@ interface FriendshipDao {
         AND status = :status
       ORDER BY createdAt DESC
     """)
-    fun observeFriendsForUserWithStatus(userId: String, status: FriendshipStatus = FriendshipStatus.ACCEPTED): Flow<List<Friendship>>
+    fun observeFriendshipsForUser(userId: String, status: FriendshipStatus = FriendshipStatus.ACCEPTED): Flow<List<Friendship>>
 
     // ***************************************************************** //
     // GET FRIEND-IDS FOR USER                                           //
@@ -53,6 +53,28 @@ interface FriendshipDao {
         AND status = :status
     """)
     suspend fun getFriendIdsForUser(userId: String, status: FriendshipStatus = FriendshipStatus.ACCEPTED): List<String>
+
+    // ***************************************************************** //
+    // FRIENDSHIP OPERATIONS                                             //
+    // ***************************************************************** //
+
+    @Query("""
+        SELECT * FROM friendships
+        WHERE (userIdA = :userId OR userIdB = :userId)
+          AND status = :status
+          AND requestedBy <> :userId
+        ORDER BY createdAt DESC
+    """)
+    fun observeIncomingRequests(userId: String, status: FriendshipStatus = FriendshipStatus.PENDING): Flow<List<Friendship>>
+
+    @Query("""
+        SELECT * FROM friendships
+        WHERE (userIdA = :userId OR userIdB = :userId)
+          AND status = :status
+          AND requestedBy = :userId
+        ORDER BY createdAt DESC
+    """)
+    fun observeOutgoingRequests(userId: String, status: FriendshipStatus = FriendshipStatus.PENDING): Flow<List<Friendship>>
 
     // ***************************************************************** //
     // COUNT FRIENDS FOR USER                                            //

@@ -6,6 +6,7 @@ import com.example.fernfreunde.data.other.Constants.POST_COLLECTION
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -25,66 +26,28 @@ class FirestorePostDataSource {
     // READ OPERATIONS                                                   //
     // ***************************************************************** //
 
-    // für one-shot: einmalig alle Posts holen (nur für debug/Admin, sonst gefilterte Abfragen)
-    suspend fun getAllPosts(): List<PostDto> {
-        return try {
-            // postCollection.get().await().toObjects(Post::class.java) // toObject benötigt default Konstruktor
-            val snapshot = postsCollection.get().await()
-            snapshot.documents.mapNotNull { it.toObject(PostDto::class.java) }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-    // für Realtime-Updates: alle Posts holen (nur für debug/Admin, sonst gefilterte Abfragen)
-    fun listenAllPostsAsFlow(): Flow<List<PostDto>> = callbackFlow {
-        val registration = postsCollection.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                close(error)
-                return@addSnapshotListener
-            }
-            if (snapshot != null) {
-                val list = snapshot.documents.mapNotNull { it.toObject(PostDto::class.java) }
-                trySend(list)
-            }
-        }
-        awaitClose { registration.remove() }
-    }
-
-    // nur die eigenen Posts des eingeloggten Users holen, sortiert nach createdAt
-    suspend fun getPostsFromUser(userId: String): List<PostDto> = withContext(Dispatchers.IO) {
-        try {
-            // snapshot = Firestore-Query um alle Dokumente nach userId zu filtern
-            val snapshot = postsCollection
-                .whereEqualTo("userId", userId)
-                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .get()
-                .await()
-            // wandelt jedes snapshot-document in ein PostDto um -> PostDto benötigt dafür default values im Konstuktor!
-            snapshot.documents.mapNotNull { it.toObject(PostDto::class.java) }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
     // die Posts von allen Freunden des eingeloggten Users holen
     // da Firebase nur maximal 10 Einträge pro Anfrage erlaubt, chunked die Anfrage
-    suspend fun getFriendsPosts(friendIds: List<String>): List<PostDto> = withContext(Dispatchers.IO) {
+    suspend fun getFriendsPosts(friendIds: List<String>, challengeId: String): List<PostDto> = withContext(Dispatchers.IO) {
         if (friendIds.isEmpty()) return@withContext emptyList()
         try {
             val results = mutableListOf<PostDto>()
             val chunks = friendIds.chunked(10)
             for (chunk in chunks) {
-                val snapshot = postsCollection
-                    .whereIn("userId", chunk)
+                var query = postsCollection.whereIn("userId", chunk)
+
+                query = query.whereEqualTo("challengeId", challengeId)
+
+                val snapshot = query
                     .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
                     .get()
                     .await()
-                results += snapshot.documents.mapNotNull { it.toObject(PostDto::class.java) }
+                results += snapshot.documents.mapNotNull {
+                    it.toObject(PostDto::class.java)
+                }
             }
-            // sortiere global nach Zeit (server oder client)
+
             val sorted = results.sortedByDescending { dto ->
-                // dto.createdAtServer kann ein Timestamp oder Long oder null sein -> sichere Umwandlung
                 val server = when (val s = dto.createdAtServer) {
                     is Timestamp -> s.toDate().time
                     is Long -> s
@@ -94,6 +57,7 @@ class FirestorePostDataSource {
             }
             sorted
         } catch (e: Exception) {
+            e.printStackTrace()
             emptyList()
         }
     }
@@ -129,5 +93,4 @@ class FirestorePostDataSource {
 
         downloadUrl
     }
-
 }

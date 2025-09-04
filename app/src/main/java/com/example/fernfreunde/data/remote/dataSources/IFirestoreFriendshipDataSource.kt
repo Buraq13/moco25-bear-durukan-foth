@@ -10,12 +10,7 @@ interface IFirestoreFriendshipDataSource {
 
     suspend fun sendFriendRequest(fromUserId: String, toUserId: String)
     suspend fun acceptFriendRequest(aUserId: String, bUserId: String)
-    suspend fun removeFriend(aUserId: String, bUserId: String)
-    suspend fun blockUser(aUserId: String, bUserId: String)
+    suspend fun getIncomingRequests(userId: String): List<FriendshipDto>
 
-    /**
-     * Realtime listener for friendships involving userId (useful to reflect remote changes locally).
-     * Emits the full friendship list when changes occur.
-     */
-    fun listenFriendships(userId: String): Flow<List<FriendshipDto>>
+    suspend fun removeFriend(aUserId: String, bUserId: String)
 }

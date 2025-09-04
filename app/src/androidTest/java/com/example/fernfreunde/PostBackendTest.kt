@@ -78,7 +78,7 @@ class PostBackendTest {
             expiresAt = System.currentTimeMillis() + 24 * 60 * 60 * 1000,
             maxPostsPerUser = 1
         )
-        dailyChallengeDao.insert(daily)
+        dailyChallengeDao.upsert(daily)
 
         val userId = "test-user-1"
 
@@ -108,7 +108,7 @@ class PostBackendTest {
         val part = participationDao.getParticipationSync(userId, today, challengeId)
         assertNotNull("Participation should be created", part)
 
-        val count = postDao.countPostsForUserInChallenge(userId, today, challengeId)
+        val count = postDao.countPostsForUserAndChallenge(userId, today, challengeId)
         assertEquals(1, count)
 
         // creating second post -> should throw (limit = 1)
@@ -147,7 +147,7 @@ class PostBackendTest {
             expiresAt = System.currentTimeMillis() + 24 * 60 * 60 * 1000,
             maxPostsPerUser = null // unlimited
         )
-        dailyChallengeDao.insert(daily)
+        dailyChallengeDao.upsert(daily)
 
         val userId = "multi-user"
 
@@ -165,6 +165,6 @@ class PostBackendTest {
         val secondId = repo.createPostLocalOnly(userId, "Multi", today, challengeId, "p2", null)
         assertNotNull(postDao.getPostSync(firstId))
         assertNotNull(postDao.getPostSync(secondId))
-        assertEquals(2, postDao.countPostsForUserInChallenge(userId, today, challengeId))
+        assertEquals(2, postDao.countPostsForUserAndChallenge(userId, today, challengeId))
     }
 }

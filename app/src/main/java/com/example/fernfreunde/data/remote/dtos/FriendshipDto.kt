@@ -5,7 +5,8 @@ import com.example.fernfreunde.data.local.entities.FriendshipStatus
 data class FriendshipDto (
     val userIdA: String = "",
     val userIdB: String = "",
-    val status: FriendshipStatus = FriendshipStatus.PENDING,  // PENDING/ACCEPTED/BLOCKED
+    var status: FriendshipStatus = FriendshipStatus.PENDING,  // PENDING/ACCEPTED/BLOCKED
+    val requestedBy: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val lastInteractionAt: Long? = null
 )

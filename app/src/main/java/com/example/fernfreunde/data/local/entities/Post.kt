@@ -13,8 +13,8 @@ import com.example.fernfreunde.data.mappers.SyncStatus
     foreignKeys = [
         ForeignKey(
             entity = DailyChallenge::class,
-            parentColumns = ["date", "challengeId"],
-            childColumns = ["challengeDate", "challengeId"],
+            parentColumns = ["challengeId"],
+            childColumns = ["challengeId"],
             onDelete = ForeignKey.SET_NULL
         ),
         ForeignKey(
@@ -26,7 +26,7 @@ import com.example.fernfreunde.data.mappers.SyncStatus
     ],
     indices = [
         Index(value = ["userId"]),
-        Index(value = ["challengeDate", "challengeId"]),
+        Index(value = ["challengeId"]),
         Index(value = ["createdAtClient"])
     ]
 )
