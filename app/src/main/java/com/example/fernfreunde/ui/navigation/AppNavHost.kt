@@ -107,7 +107,12 @@ fun AppNavHost() {
             SettingsScreen(
                 onFriendsClick = { nav.go(Routes.FRIENDS) },
                 onUploadClick  = { nav.go(Routes.UPLOAD)  },
-                onProfileClick = { nav.go(Routes.PROFILE) }
+                onProfileClick = { nav.go(Routes.PROFILE) },
+                onBackClick = { nav.popBackStack() },  // 👈 zurück zum Profil
+                onSaveClick = { push, requests ->
+                    // TODO: später speichern (Firebase / DB)
+                    nav.popBackStack() // nach Save zurück zum Profil
+                }
             )
         }
 

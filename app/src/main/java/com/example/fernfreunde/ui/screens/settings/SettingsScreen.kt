@@ -18,7 +18,8 @@ fun SettingsScreen(
     onFriendsClick: () -> Unit = {},
     onUploadClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onSaveClick: (Boolean, Boolean) -> Unit = { _, _ -> } // neue Callback für Save
+    onBackClick: () -> Unit = {},            // 👈 neu für zurück
+    onSaveClick: (Boolean, Boolean) -> Unit = { _, _ -> } // Save Callback
 ) {
     var push by remember { mutableStateOf(true) }
     var requests by remember { mutableStateOf(true) }
@@ -44,33 +45,40 @@ fun SettingsScreen(
         ) {
             ListItem(
                 headlineContent = { Text("Push notifications") },
-                trailingContent = {
-                    Switch(checked = push, onCheckedChange = { push = it })
-                }
+                trailingContent = { Switch(checked = push, onCheckedChange = { push = it }) }
             )
             HorizontalDivider()
             ListItem(
                 headlineContent = { Text("Friend request alerts") },
-                trailingContent = {
-                    Switch(checked = requests, onCheckedChange = { requests = it })
-                }
+                trailingContent = { Switch(checked = requests, onCheckedChange = { requests = it }) }
             )
             HorizontalDivider()
-            ListItem(
-                headlineContent = { Text("About") }
-            )
+            ListItem(headlineContent = { Text("About") })
             HorizontalDivider()
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Save Button
             Button(
-                onClick = { onSaveClick(push, requests) },
+                onClick = {
+                    onSaveClick(push, requests)
+                    onBackClick() // nach speichern zurück
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 12.dp)
             ) {
                 Text("Save")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Optional: direkter Back Button
+            OutlinedButton(
+                onClick = { onBackClick() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Back")
             }
         }
     }
@@ -81,3 +89,4 @@ fun SettingsScreen(
 private fun SettingsPreview() {
     FernfreundeTheme { SettingsScreen() }
 }
+
