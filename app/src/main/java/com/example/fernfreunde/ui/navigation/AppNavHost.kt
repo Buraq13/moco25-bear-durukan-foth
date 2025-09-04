@@ -115,6 +115,23 @@ fun AppNavHost() {
             )
         }
 
+        composable(Routes.PROFILE) {
+            ProfileScreen(
+                onFriendsClick = { nav.go(Routes.FRIENDS) },
+                onUploadClick  = { nav.go(Routes.UPLOAD)  },
+                onProfileClick = { nav.go(Routes.MAIN)   },  // Re-select → zurück zu MAIN
+                onSettingsClick = { nav.go(Routes.SETTINGS) } // falls dein ProfileScreen das anbietet
+            )
+        }
+
+        composable(Routes.SETTINGS) {
+            SettingsScreen(
+                onFriendsClick = { nav.go(Routes.FRIENDS) },
+                onUploadClick  = { nav.go(Routes.UPLOAD)  },
+                onProfileClick = { nav.go(Routes.PROFILE) },
+                //onBackClick    = { nav.popBackStack() }     // nicht vorhanden! Muss in der UI eingefügt werden
+            )
+        }
 
         composable(Routes.MISSION) {
             MissionDetailsScreen(
