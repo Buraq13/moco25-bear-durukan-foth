@@ -18,6 +18,7 @@ fun SettingsScreen(
     onFriendsClick: () -> Unit = {},
     onUploadClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    onSaveClick: (Boolean, Boolean) -> Unit = { _, _ -> } // neue Callback für Save
 ) {
     var push by remember { mutableStateOf(true) }
     var requests by remember { mutableStateOf(true) }
@@ -59,6 +60,18 @@ fun SettingsScreen(
                 headlineContent = { Text("About") }
             )
             HorizontalDivider()
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Save Button
+            Button(
+                onClick = { onSaveClick(push, requests) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp)
+            ) {
+                Text("Save")
+            }
         }
     }
 }

@@ -86,7 +86,8 @@ fun AppNavHost() {
                 onFriendsClick = { nav.go(Routes.FRIENDS) },
                 onUploadClick  = { nav.go(Routes.UPLOAD)  },
                 onProfileClick = { nav.go(Routes.MAIN) },
-                onEditProfileClick = { nav.navigate(Routes.EDIT_PROFILE) } // 👈 EditProfile eingebaut
+                onEditProfileClick = { nav.navigate(Routes.EDIT_PROFILE) },
+                onSettingsClick = { nav.navigate(Routes.SETTINGS) } // 👈 hier verbinden
             )
         }
 
