@@ -17,6 +17,7 @@ import com.example.fernfreunde.ui.screens.friends.FriendsListScreen
 import com.example.fernfreunde.ui.screens.main.MainScreen
 import com.example.fernfreunde.ui.screens.mission.MissionDetailsScreen
 import com.example.fernfreunde.ui.screens.profile.ProfileScreen
+import com.example.fernfreunde.ui.screens.profile.EditProfileScreen
 import com.example.fernfreunde.ui.screens.settings.SettingsScreen
 import com.example.fernfreunde.ui.screens.upload.UploadScreen
 import com.example.fernfreunde.ui.theme.FernfreundeTheme
@@ -72,7 +73,7 @@ fun AppNavHost() {
                     if (inPreview) {
                         takePhoto()
                     } else {
-                        if (cameraPerm?.granted == true) takePhoto() else cameraPerm?.request()
+                        if (cameraPerm?.granted == true) takePhoto() else cameraPerm?.request?.let { it1 -> it1() }
                     }
                 },
                 onSwitchCamera = { /* später CameraX */ },
@@ -84,7 +85,20 @@ fun AppNavHost() {
             ProfileScreen(
                 onFriendsClick = { nav.go(Routes.FRIENDS) },
                 onUploadClick  = { nav.go(Routes.UPLOAD)  },
-                onProfileClick = { nav.go(Routes.MAIN) }
+                onProfileClick = { nav.go(Routes.MAIN) },
+                onEditProfileClick = { nav.navigate(Routes.EDIT_PROFILE) } // 👈 EditProfile eingebaut
+            )
+        }
+
+        composable(Routes.EDIT_PROFILE) {
+            EditProfileScreen(
+                onSaveClick = { username, bio, email, imageUri ->
+                    // TODO: Daten speichern (z.B. Firebase / lokale DB)
+                    nav.popBackStack() // zurück zum Profil
+                },
+                onCancelClick = {
+                    nav.popBackStack()
+                }
             )
         }
 
@@ -108,7 +122,8 @@ private fun NavHostController.go(route: String) {
     navigate(route) {
         popUpTo(graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
-        restoreState = true }
+        restoreState = true
+    }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
@@ -116,3 +131,4 @@ private fun NavHostController.go(route: String) {
 private fun AppNavHostPreview() {
     FernfreundeTheme { AppNavHost() }
 }
+

@@ -7,4 +7,5 @@ object Routes {
     const val PROFILE = "profile"
     const val SETTINGS = "settings"
     const val MISSION = "mission"
+    const val EDIT_PROFILE = "edit_profile"
 }
