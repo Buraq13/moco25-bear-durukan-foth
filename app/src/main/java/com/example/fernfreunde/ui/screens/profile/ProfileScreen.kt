@@ -60,9 +60,9 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
             LastActivitiesSection() // Aktivitäten direkt unter Header
             Spacer(modifier = Modifier.height(16.dp))
-            ActionCard(text = "Profil bearbeiten", onClick = onEditProfileClick)
+            ActionCard(text = "Edit Profile", onClick = onEditProfileClick)
             Spacer(modifier = Modifier.height(8.dp))
-            ActionCard(text = "Einstellungen", onClick = onSettingsClick)
+            ActionCard(text = "Settings", onClick = onSettingsClick)
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = "Logout",
@@ -88,7 +88,7 @@ fun ProfileHeader() {
         selectedImageUri = uri
     }
 
-    val bioText = "Ich liebe Kotlin und Jetpack Compose!"
+    val bioText = "Hi!"
 
     Card(
         modifier = Modifier
@@ -106,7 +106,7 @@ fun ProfileHeader() {
                     rememberAsyncImagePainter(selectedImageUri)
                 else
                     painterResource(R.drawable.placeholder),
-                contentDescription = "Profilbild",
+                contentDescription = "Profile Picture",
                 modifier = Modifier
                     .size(80.dp)
                     .clickable { launcher.launch("image/*") },
@@ -117,7 +117,7 @@ fun ProfileHeader() {
 
             Column {
                 Text(
-                    text = "Jennie123",
+                    text = "User",
                     style = MaterialTheme.typography.titleLarge
                 )
                 Text(
