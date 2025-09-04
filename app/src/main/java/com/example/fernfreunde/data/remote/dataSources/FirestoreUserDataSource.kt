@@ -16,14 +16,14 @@ class FirestoreUserDataSource(
     private val storage: FirebaseStorage
 ) : IFirestoreUserDataSource {
 
-    private val users = firestore.collection(USER_COLLECTION)
+    private val usersCollection = firestore.collection(USER_COLLECTION)
 
     // ***************************************************************** //
     // READ OPERATIONS                                                   //
     // ***************************************************************** //
 
     override suspend fun getUser(userId: String): UserDto? {
-        val snapshot = users.document(userId).get().await()
+        val snapshot = usersCollection.document(userId).get().await()
         return if (snapshot.exists()) {
             snapshot.toObject(UserDto::class.java)
         } else {
@@ -38,40 +38,15 @@ class FirestoreUserDataSource(
         val chunks = userIds.chunked(10)
         val results = mutableListOf<UserDto>()
         for (chunk in chunks) {
-            val snapshot = users.whereIn("userId", chunk).get().await()
+            val snapshot = usersCollection.whereIn("userId", chunk).get().await()
             results += snapshot.documents.mapNotNull { it.toObject(UserDto::class.java) }
         }
         return results
     }
 
-    override suspend fun searchUsers(query: String, limit: Int): List<UserDto> {
-        // prefix search on username and displayName using startAt/endAt trick
-        val q = query.trim()
-        if (q.isEmpty()) return emptyList()
-
-        val end = "$q\uF8FF" // unicode trick for prefix-range
-
-        val byUsername = users
-            .orderBy("username")
-            .startAt(q)
-            .endAt(end)
-            .limit(limit.toLong())
-            .get()
-            .await()
-            .documents.mapNotNull { it.toObject(UserDto::class.java) }
-
-        // also search displayName (merge results, remove duplicates by userId)
-        val byDisplayName = users
-            .orderBy("displayName")
-            .startAt(q)
-            .endAt(end)
-            .limit(limit.toLong())
-            .get()
-            .await()
-            .documents.mapNotNull { it.toObject(UserDto::class.java) }
-
-        val all = (byUsername + byDisplayName).distinctBy { it.userId }
-        return all.take(limit)
+    override suspend fun getAllUsers(): List<UserDto> {
+        val snapshot = usersCollection.limit(100).get().await()
+        return snapshot.documents.mapNotNull { it.toObject(UserDto::class.java) }
     }
 
     // ***************************************************************** //
@@ -87,7 +62,7 @@ class FirestoreUserDataSource(
             "bio" to user.bio,
             "updatedAt" to com.google.firebase.firestore.FieldValue.serverTimestamp()
         )
-        users.document(user.userId).set(data, SetOptions.merge()).await()
+        usersCollection.document(user.userId).set(data, SetOptions.merge()).await()
     }
 
     override suspend fun uploadProfileImage(userId: String, mediaUri: Uri): String {
@@ -97,7 +72,7 @@ class FirestoreUserDataSource(
 
         val downloadUrl = ref.downloadUrl.await().toString()
 
-        users.document(userId).update("profileImageUrl", downloadUrl).await()
+        usersCollection.document(userId).update("profileImageUrl", downloadUrl).await()
 
         return downloadUrl
     }
@@ -108,7 +83,7 @@ class FirestoreUserDataSource(
     // zeigt Echtzeit-Änderungen, z.B. wenn usxername geändert oder Profilbild aktualisiert wurde
     override fun listenUser(userId: String) = callbackFlow<UserDto?> {
         // registriert einen listener, der bei jeder Änderung automatisch aufgerufen wird
-        val registration = users.document(userId).addSnapshotListener { snapshot, error ->
+        val registration = usersCollection.document(userId).addSnapshotListener { snapshot, error ->
             // wenn ein Fehler auftritt, wird der Flow geschlossen, ansonsten wird ein Ergebnis zurückgegeben
             if (error != null) {
                 close(error)

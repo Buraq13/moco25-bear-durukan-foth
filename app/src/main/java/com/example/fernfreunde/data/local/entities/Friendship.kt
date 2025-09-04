@@ -14,7 +14,8 @@ import com.example.fernfreunde.data.mappers.Converters
 data class Friendship(
     val userIdA: String,
     val userIdB: String,
-    val status: FriendshipStatus,  // PENDING/ACCEPTED/BLOCKED
+    var status: FriendshipStatus,  // PENDING/ACCEPTED/BLOCKED
+    val requestedBy: String,
     val createdAt: Long,
     val lastInteractionAt: Long? = null  // epoch millis
 )

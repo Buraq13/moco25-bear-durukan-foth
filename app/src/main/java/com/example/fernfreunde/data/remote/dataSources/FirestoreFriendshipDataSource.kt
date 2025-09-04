@@ -1,19 +1,19 @@
 // file: com/example/fernfreunde/data/remote/FirebaseFriendshipRemoteDataSource.kt
 package com.example.fernfreunde.data.remote.dataSources
 
+import com.example.fernfreunde.data.local.entities.FriendshipStatus
 import com.example.fernfreunde.data.other.Constants.FRIENDSHIP_COLLECTION
 import com.example.fernfreunde.data.remote.dtos.FriendshipDto
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.launch
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 
 class FirestoreFriendshipDataSource(
     private val firestore: FirebaseFirestore
 ) : IFirestoreFriendshipDataSource {
 
-    private val friendships = firestore.collection(FRIENDSHIP_COLLECTION)
+    private val friendshipsCollection = firestore.collection(FRIENDSHIP_COLLECTION)
 
     // ***************************************************************** //
     // HELPER: CANONICAL PAIR                                            //
@@ -22,7 +22,7 @@ class FirestoreFriendshipDataSource(
     // mit FreundA, FreundB und FreundB, FreundA gespeichert wird)       //
     // ***************************************************************** //
 
-    private fun canonicalId(a: String, b: String): Pair<String, String> {
+    private fun canonicalPair(a: String, b: String): Pair<String, String> {
         return if (a <= b) Pair(a, b) else Pair(b, a)
     }
 
@@ -31,20 +31,18 @@ class FirestoreFriendshipDataSource(
     // ***************************************************************** //
 
     override suspend fun getFriendshipsForUser(userId: String): List<FriendshipDto> {
-        val queryUserA = friendships.whereEqualTo("userIdA", userId).get()
-        val queryUserB = friendships.whereEqualTo("userIdB", userId).get()
-        val snapshotA = queryUserA.await()
-        val snapshotB = queryUserB.await()
+        val snapshotA = friendshipsCollection.whereEqualTo("userIdA", userId).get().await()
+        val snapshotB = friendshipsCollection.whereEqualTo("userIdB", userId).get().await()
         val listA = snapshotA.documents.mapNotNull { it.toObject(FriendshipDto::class.java) }
         val listB = snapshotB.documents.mapNotNull { it.toObject(FriendshipDto::class.java) }
         // vereinigt die beiden Listen und entfernt Duplikate
-        val combined = (listA + listB).distinctBy { listOf(it.userIdA, it.userIdB).sorted().joinToString("_") }
-        return combined
+        return (listA + listB)
+            .distinctBy { listOf(it.userIdA, it.userIdB).sorted().joinToString("_") }
     }
 
     override suspend fun getFriendIds(userId: String): List<String> {
-        val snapshotA = friendships.whereEqualTo("userIdA", userId).get().await()
-        val snapshotB = friendships.whereEqualTo("userIdB", userId).get().await()
+        val snapshotA = friendshipsCollection.whereEqualTo("userIdA", userId).get().await()
+        val snapshotB = friendshipsCollection.whereEqualTo("userIdB", userId).get().await()
         val ids = mutableSetOf<String>()
         snapshotA.documents.mapNotNullTo(ids) { it.getString("userIdB") }
         snapshotB.documents.mapNotNullTo(ids) { it.getString("userIdA") }
@@ -56,77 +54,41 @@ class FirestoreFriendshipDataSource(
     // ***************************************************************** //
 
     override suspend fun sendFriendRequest(fromUserId: String, toUserId: String) {
-        TODO("Not yet implemented")
+        val (a, b) = canonicalPair(fromUserId, toUserId)
+        val docId = "${a}_$b"
+        val payload = hashMapOf<String, Any>(
+            "userIdA" to a,
+            "userIdB" to b,
+            "status" to FriendshipStatus.PENDING,
+            "requestedBy" to fromUserId,
+            "createdAt" to FieldValue.serverTimestamp(),
+            "updatedAt" to FieldValue.serverTimestamp()
+        )
+        friendshipsCollection.document(docId).set(payload, SetOptions.merge()).await()
     }
 
     override suspend fun acceptFriendRequest(aUserId: String, bUserId: String) {
-        TODO("Not yet implemented")
+        val (a, b) = canonicalPair(aUserId, bUserId)
+        val docId = "${a}_$b"
+        val payload = mapOf(
+            "status" to FriendshipStatus.ACCEPTED
+        )
+        friendshipsCollection.document(docId).update(payload).await()
+    }
+
+    override suspend fun getIncomingRequests(userId: String): List<FriendshipDto> {
+        val snapshotA = friendshipsCollection.whereEqualTo("userIdA", userId).get().await()
+        val snapshotB = friendshipsCollection.whereEqualTo("userIdB", userId).get().await()
+        val listA = snapshotA.documents.mapNotNull { it.toObject(FriendshipDto::class.java) }
+        val listB = snapshotB.documents.mapNotNull { it.toObject(FriendshipDto::class.java) }
+        return (listA + listB)
+            .filter { it.status == FriendshipStatus.PENDING && it.requestedBy != userId }
+            .distinctBy { listOf(it.userIdA, it.userIdB).sorted().joinToString { "_" } }
     }
 
     override suspend fun removeFriend(aUserId: String, bUserId: String) {
-        val (a, b) = canonicalId(aUserId, bUserId)
+        val (a, b) = canonicalPair(aUserId, bUserId)
         val docId = "${a}_$b"
-        friendships.document(docId).delete().await()
-    }
-
-    override suspend fun blockUser(aUserId: String, bUserId: String) {
-        TODO("Not yet implemented")
-    }
-
-    // ***************************************************************** //
-    // LISTENER FOR REALTIME UPDATES                                     //
-    // ***************************************************************** //
-
-    // maybe noch anpassen
-    override fun listenFriendships(userId: String) = callbackFlow<List<FriendshipDto>> {
-        // Helper: query both sides in a suspend function
-        suspend fun queryBoth(): List<FriendshipDto> {
-            val snapA = friendships.whereEqualTo("userIdA", userId).get().await()
-            val snapB = friendships.whereEqualTo("userIdB", userId).get().await()
-            val listA = snapA.documents.mapNotNull { it.toObject(FriendshipDto::class.java) }
-            val listB = snapB.documents.mapNotNull { it.toObject(FriendshipDto::class.java) }
-            return (listA + listB).distinctBy { listOf(it.userIdA, it.userIdB).sorted().joinToString("_") }
-        }
-
-        // register listeners for both queries (one for each side)
-        val regA = friendships.whereEqualTo("userIdA", userId)
-            .addSnapshotListener { _, _ ->
-                // launch a coroutine in callbackFlow's scope
-                launch {
-                    try {
-                        val combined = queryBoth()
-                        trySend(combined).isSuccess
-                    } catch (e: Exception) {
-                        close(e)
-                    }
-                }
-            }
-
-        val regB = friendships.whereEqualTo("userIdB", userId)
-            .addSnapshotListener { _, _ ->
-                launch {
-                    try {
-                        val combined = queryBoth()
-                        trySend(combined).isSuccess
-                    } catch (e: Exception) {
-                        close(e)
-                    }
-                }
-            }
-
-        // initial emission (best-effort)
-        launch {
-            try {
-                val initial = queryBoth()
-                trySend(initial).isSuccess
-            } catch (e: Exception) {
-                // ignore or close(e)
-            }
-        }
-
-        awaitClose {
-            regA.remove()
-            regB.remove()
-        }
+        friendshipsCollection.document(docId).delete().await()
     }
 }
