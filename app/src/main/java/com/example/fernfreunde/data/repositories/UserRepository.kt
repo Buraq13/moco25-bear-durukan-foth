@@ -2,6 +2,7 @@ package com.example.fernfreunde.data.repositories
 
 import android.net.Uri
 import androidx.room.withTransaction
+import com.example.fernfreunde.data.local.entities.User
 import com.example.fernfreunde.data.mappers.toEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -22,13 +23,13 @@ class UserRepository @Inject constructor(
 
     // liefert einen Flow für einen User (wird automatisch geupdatet, falls sich was in Room ändert)
     // ---> für Viewmodel (z.B. Profile Screen, um Details für User anzuzeigen)
-    fun observeUser(userId: String): Flow<com.example.fernfreunde.data.local.entities.User?> {
+    fun observeUser(userId: String): Flow<User?> {
         return userDao.observeUserById(userId)
     }
 
     // User einmalig aus Room holen, falls nicht vorhanden von Firebase holen und in Room speichern
     // ---> für ViewModel, z.B. um Profildaten abzufragen
-    suspend fun getUser(userId: String): com.example.fernfreunde.data.local.entities.User? = withContext(Dispatchers.IO) {
+    suspend fun getUser(userId: String): User? = withContext(Dispatchers.IO) {
         val local = userDao.getUserById(userId)
         if (local != null) return@withContext local
 
@@ -40,7 +41,7 @@ class UserRepository @Inject constructor(
 
     // mehrere User aus Room holen, falls einige fehlen und remote vorhanden sind -> aus Firebase holen
     // ---> für FrienshipRepository.observeFriends, um Freundesliste zu erstellen
-    suspend fun getUsersByIds(userIds: List<String>): List<com.example.fernfreunde.data.local.entities.User> = withContext(Dispatchers.IO) {
+    suspend fun getUsersByIds(userIds: List<String>): List<User> = withContext(Dispatchers.IO) {
         if (userIds.isEmpty()) return@withContext emptyList()
         val local = userDao.getUsersByIds(userIds)
         val missing = userIds.filterNot { id -> local.any { it.userId == id } }
@@ -56,6 +57,12 @@ class UserRepository @Inject constructor(
         userDao.getUsersByIds(userIds)
     }
 
+    suspend fun getAllUsers(): List<User> = withContext(Dispatchers.IO) {
+        if (remote == null) return@withContext emptyList()
+        val remoteUsers = remote.getAllUsers()
+        return@withContext remoteUsers.map { it.toEntity() }
+    }
+
     // ***************************************************************** //
     // CREATE/UPDATE USERS                                               //
     // ***************************************************************** //
@@ -66,12 +73,6 @@ class UserRepository @Inject constructor(
     // HELPER: SYNCHRONICE ROOM <-> FIREBASE                             //
     // -> holt alle User von Firebase und speichert sie lokal in Room    //
     // ***************************************************************** //
-
-    suspend fun syncUserFromRemote(userId: String) = withContext(Dispatchers.IO) {
-        val dto = remote?.getUser(userId) ?: return@withContext
-        val entity = dto.toEntity()
-        userDao.upsert(entity)
-    }
 
     suspend fun syncUsersFromRemote(userIds: List<String>) = withContext(Dispatchers.IO) {
         if (userIds.isEmpty() || remote == null) return@withContext
