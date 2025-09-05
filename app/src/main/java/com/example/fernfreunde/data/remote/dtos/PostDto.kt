@@ -9,5 +9,5 @@ data class PostDto (
     val description: String? = null,
     val mediaRemoteUrl: String? = null,           // remoteUrl von Firebase!!!
     val createdAtClient: Long = System.currentTimeMillis(),
-    val createdAt: Any? = null                     // <-- heisst nun "createdAt" (matching Firestore field)
+    val createdAtServer: Any? = null
 )

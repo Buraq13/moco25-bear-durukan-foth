@@ -24,7 +24,7 @@ import com.example.fernfreunde.data.local.entities.User
         Settings::class,
         PendingUpload::class
     ],
-    version = 4,
+    version = 2,
     exportSchema = false //true
 )
 abstract class AppDatabase: RoomDatabase() {

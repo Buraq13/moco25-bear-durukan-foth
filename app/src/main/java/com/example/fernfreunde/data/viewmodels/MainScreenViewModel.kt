@@ -2,7 +2,6 @@ package com.example.fernfreunde.data.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fernfreunde.data.local.entities.DailyChallenge
 import com.example.fernfreunde.data.repositories.DailyChallengeRepository
 import com.example.fernfreunde.data.repositories.FriendshipRepository
 import com.example.fernfreunde.data.repositories.PostRepository
@@ -30,35 +29,18 @@ class MainScreenViewModel @Inject constructor(
     private val _feed = MutableStateFlow<List<PostDisplay>>(emptyList())
     val feed = _feed.asStateFlow()
 
-    private val _currentMission = MutableStateFlow<DailyChallenge?>(null)
-    val currentMission = _currentMission.asStateFlow()
-
     private var observeJob: Job? = null
 
     fun startObservingFeedForCurrentUser() {
         observeJob?.cancel()
 
         observeJob = viewModelScope.launch {
-            dailyChallengeRepository.debug()
-
             val uid = auth.currentUser?.uid
-
-            // ***** aktuelle Challenge holen *****
-            val currentChallenge = try {
-                dailyChallengeRepository.getCurrentDailyChallenge()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-            _currentMission.value = currentChallenge
-
             if (uid == null) {
                 _feed.value = emptyList()
-                // _currentMission.value = null
                 return@launch
             }
 
-            // ***** Freunde holen *****
             val friendIds = try {
                 friendshipRepository.getFriendIdsForUser(uid)
             } catch (e: Exception) {
@@ -71,7 +53,6 @@ class MainScreenViewModel @Inject constructor(
                 return@launch
             }
 
-            // ***** Posts für Freunde und aktuelle Challenge holen *****
             val currentChallengeId = try {
                 dailyChallengeRepository.getCurrentChallengeId()
             } catch (e: Exception) {

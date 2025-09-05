@@ -1,6 +1,5 @@
 package com.example.fernfreunde.ui.screens.upload
 
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,11 +16,11 @@ import androidx.compose.material.icons.outlined.FlashOn
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,11 +28,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.fernfreunde.data.viewmodels.CreatePostViewModel
 import com.example.fernfreunde.ui.components.navigation.BottomBar
 import com.example.fernfreunde.ui.components.navigation.NavItem
 import com.example.fernfreunde.ui.components.navigation.TopBar
@@ -186,20 +182,12 @@ private fun UploadPreview() {
 fun UploadScreenRoute(
     onFriendsClick: () -> Unit = {},
     onUploadClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {},
-    viewModel: CreatePostViewModel = hiltViewModel() // new
+    onProfileClick: () -> Unit = {}
 ) {
-    // new
-    val context = LocalContext.current
-    val isPosting by viewModel.isPosting.collectAsState()
-    val lastError by viewModel.lastError.collectAsState()
-    val createdId by viewModel.createdPostId.collectAsState()
-
     val pickImage = com.example.fernfreunde.feature.media.rememberMediaPicker(
         type = com.example.fernfreunde.feature.media.MediaType.Image
     ) { uri ->
         // TODO: VM: onImageChosen(uri)
-        uri?.let { viewModel.createPostWithMedia(it, "no description") } // new
     }
 
     val cameraPerm = com.example.fernfreunde.feature.permissions.PermissionRequester(
@@ -208,23 +196,6 @@ fun UploadScreenRoute(
 
     val takePhoto = com.example.fernfreunde.feature.media.rememberTakePhoto { uri ->
         // TODO: VM: onPhotoCaptured(uri)
-        uri?.let { viewModel.createPostWithMedia(it, "no description") } // new
-    }
-
-    // ***** Toasts für Feedback ******
-    LaunchedEffect(lastError) {
-        if (!lastError.isNullOrBlank()) {
-            Toast.makeText(context, lastError, Toast.LENGTH_LONG).show()
-            viewModel.clearError()
-        }
-    }
-
-    LaunchedEffect(createdId) {
-        if (!createdId.isNullOrBlank()) {
-            Toast.makeText(context, "Post erstellt (lokal): $createdId", Toast.LENGTH_LONG).show()
-            viewModel.clearCreatedPostEvent()
-            // Optional: navigate away
-        }
     }
 
     UploadScreen(

@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "234439215648",
-    "project_id": "moco25-fernfreunde2",
-    "storage_bucket": "moco25-fernfreunde2.firebasestorage.app"
+    "project_number": "952249410291",
+    "project_id": "moco25-fernfreunde",
+    "storage_bucket": "moco25-fernfreunde.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:234439215648:android:0c4630a8895034e7baca45",
+        "mobilesdk_app_id": "1:952249410291:android:73b11c4eac8dfcfd2fcd86",
         "android_client_info": {
           "package_name": "com.example.fernfreunde"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDHVM9rGyQFAzcQQ7tMCjniyBkuIKt1x9s"
+          "current_key": "AIzaSyCEV55UBDGx9wS63JNX-eaY_xPyKOuHt8Q"
         }
       ],
       "services": {
