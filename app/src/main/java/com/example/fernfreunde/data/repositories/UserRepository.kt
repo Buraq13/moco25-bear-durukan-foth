@@ -22,14 +22,10 @@ class UserRepository @Inject constructor(
     // READ/OBSERVE USERS                                                //
     // ***************************************************************** //
 
-    // liefert einen Flow für einen User (wird automatisch geupdatet, falls sich was in Room ändert)
-    // ---> für Viewmodel (z.B. Profile Screen, um Details für User anzuzeigen)
     fun observeUser(userId: String): Flow<User?> {
         return userDao.observeUserById(userId)
     }
 
-    // User einmalig aus Room holen, falls nicht vorhanden von Firebase holen und in Room speichern
-    // ---> für ViewModel, z.B. um Profildaten abzufragen
     suspend fun getUser(userId: String): User? = withContext(Dispatchers.IO) {
         val local = userDao.getUserById(userId)
         if (local != null) return@withContext local
@@ -40,8 +36,6 @@ class UserRepository @Inject constructor(
         entity
     }
 
-    // mehrere User aus Room holen, falls einige fehlen und remote vorhanden sind -> aus Firebase holen
-    // ---> für FrienshipRepository.observeFriends, um Freundesliste zu erstellen
     suspend fun getUsersByIds(userIds: List<String>): List<User> = withContext(Dispatchers.IO) {
         if (userIds.isEmpty()) return@withContext emptyList()
         val local = userDao.getUsersByIds(userIds)
@@ -67,8 +61,6 @@ class UserRepository @Inject constructor(
     // ***************************************************************** //
     // CREATE/UPDATE USERS                                               //
     // ***************************************************************** //
-
-    // muss noch implementiert werden
 
     suspend fun upsertLocalUser(user: User, pushRemote: Boolean = false) = withContext(Dispatchers.IO) {
         appDatabase.withTransaction {
@@ -97,8 +89,6 @@ class UserRepository @Inject constructor(
 
     suspend fun deleteUser(userId: String) = withContext(Dispatchers.IO) {
         userDao.deleteUser(userId)
-        // optional User auch in Firebase löschen:
-        // remote?.deleteUser(userId)
     }
     suspend fun uploadProfilePicture(userId: String, uri: Uri): String {
         val downloadUrl = remote?.uploadProfileImage(userId, uri) ?: ""
