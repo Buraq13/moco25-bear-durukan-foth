@@ -20,7 +20,7 @@ import com.example.fernfreunde.data.remote.dataSources.FirestoreUserDataSource
 import com.google.firebase.FirebaseApp
 import dagger.hilt.android.qualifiers.ApplicationContext
 
-private const val EMULATOR_HOST = "10.0.2.2" // android emulator host
+private const val EMULATOR_HOST = "10.0.2.2"
 private const val FIRESTORE_PORT = 8080
 private const val AUTH_PORT = 9099
 private const val STORAGE_PORT = 9199
@@ -32,13 +32,11 @@ object FirebaseModule {
     @Provides
     @Singleton
     fun provideFirebaseApp(@ApplicationContext context: Context): FirebaseApp {
-        // initializeApp ist idempotent: wenn bereits initialisiert, wird die bestehende zurückgegeben.
         return FirebaseApp.initializeApp(context)!!
     }
 
     @Provides
     @Singleton
-    // fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
     fun provideFirestore(@ApplicationContext context: Context): FirebaseFirestore {
         val instance = FirebaseFirestore.getInstance()
         val isDebuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
@@ -51,7 +49,6 @@ object FirebaseModule {
 
     @Provides
     @Singleton
-    // fun provideStorage(): FirebaseStorage = FirebaseStorage.getInstance()
     fun provideStorage(@ApplicationContext context: Context): FirebaseStorage {
         val instance = FirebaseStorage.getInstance()
         val isDebuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
@@ -62,7 +59,6 @@ object FirebaseModule {
     }
     @Provides
     @Singleton
-    //fun provideAuth(): FirebaseAuth = FirebaseAuth.getInstance()
     fun provideAuth(@ApplicationContext context: Context): FirebaseAuth {
         val instance = FirebaseAuth.getInstance()
         val isDebuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
