@@ -13,7 +13,7 @@ fun UserDto.toEntity(): User {
         displayName = this.displayName ?: "",
         profileImageUrl = this.profileImageUrl,
         bio = this.bio,
-        createdAt = this.updatedAt
+        createdAt = this.updatedAt //??
     )
 }
 

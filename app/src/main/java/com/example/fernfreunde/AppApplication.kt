@@ -1,49 +1,51 @@
 package com.example.fernfreunde
 
 import android.app.Application
-import android.content.pm.ApplicationInfo
-import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import com.google.firebase.FirebaseApp
+import com.google.firebase.BuildConfig
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
+// import com.google.firebase.FirebaseApp
 import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Inject
 
 @HiltAndroidApp
 class AppApplication : Application(), Configuration.Provider {
 
-    override val workManagerConfiguration: Configuration
-        get() {
-            val entryPoint = EntryPointAccessors.fromApplication(
-                this,
-                HiltWorkerFactoryEntryPoint::class.java
-            )
-            val factory: HiltWorkerFactory = entryPoint.workerFactory()
+//    @Inject
+//    lateinit var workerFactory: HiltWorkerFactory
+//
+//    override val workManagerConfiguration: Configuration =
+//        Configuration.Builder()
+//            .setWorkerFactory(workerFactory)
+//            .build()
 
-            return Configuration.Builder()
-                .setWorkerFactory(factory)
-                .build()
-        }
+    override val workManagerConfiguration: Configuration by lazy {
+        // Hole das HiltWorkerFactory sicher aus dem Hilt-Component via EntryPointAccessors
+        val entryPoint = EntryPointAccessors.fromApplication(
+            this,
+            HiltWorkerFactoryEntryPoint::class.java
+        )
+        val workerFactory: HiltWorkerFactory = entryPoint.workerFactory()
+
+        Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
+    }
 
     override fun onCreate() {
-        super.onCreate()
-
-        // init Firebase
-        FirebaseApp.initializeApp(this)
-
-        // Debuggable-Check statt BuildConfig.DEBUG
-        val isDebuggable = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
-        if (isDebuggable) {
-            try {
-                // optional: Log oder andere Debug-Only-Kram
-                Log.i("AppApplication", "App is debuggable -> Firebase emulator routing enabled")
-            } catch (e: Exception) {
-                Log.w("AppApplication", "Failed to configure debug behaviour: ${e.message}")
-            }
+        if (BuildConfig.DEBUG) {
+            FirebaseFirestore.getInstance().useEmulator("10.0.2.2", 8080)
+            FirebaseStorage.getInstance().useEmulator("10.0.2.2", 9199)
+            FirebaseAuth.getInstance().useEmulator("10.0.2.2", 9099)
         }
+        super.onCreate()
     }
 }
 
