@@ -55,7 +55,10 @@ class FriendsListViewModel @Inject constructor(
             if (userId == null) {
                 _friends.value = emptyList()
                 _pending.value = emptyList()
-                _allUsers.value = emptyList()
+                //_allUsers.value = emptyList()
+                _allUsers.value = withContext(Dispatchers.IO) {
+                    userRepository.getAllUsers()
+                }
                 return@launch
             }
 

@@ -3,6 +3,7 @@ package com.example.fernfreunde.data.remote.dataSources
 import android.net.Uri
 import com.example.fernfreunde.data.remote.dtos.PostDto
 import com.example.fernfreunde.data.other.Constants.POST_COLLECTION
+import com.example.fernfreunde.data.remote.dtos.UserDto
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -15,11 +16,14 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class FirestorePostDataSource {
-
-    private val firestore = FirebaseFirestore.getInstance()
-    private val storage: FirebaseStorage = FirebaseStorage.getInstance()
+@Singleton
+class FirestorePostDataSource @Inject constructor(
+    private val firestore: FirebaseFirestore,
+    private val storage: FirebaseStorage
+) {
     private val postsCollection = firestore.collection(POST_COLLECTION)
 
     // ***************************************************************** //
@@ -60,6 +64,11 @@ class FirestorePostDataSource {
             e.printStackTrace()
             emptyList()
         }
+    }
+
+    suspend fun getAllPosts(): List<PostDto> {
+        val snapshot = postsCollection.limit(100).get().await()
+        return snapshot.documents.mapNotNull { it.toObject(PostDto::class.java) }
     }
 
     // ***************************************************************** //

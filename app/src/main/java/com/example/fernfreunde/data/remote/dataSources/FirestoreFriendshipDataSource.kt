@@ -8,8 +8,9 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class FirestoreFriendshipDataSource(
+class FirestoreFriendshipDataSource @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : IFirestoreFriendshipDataSource {
 

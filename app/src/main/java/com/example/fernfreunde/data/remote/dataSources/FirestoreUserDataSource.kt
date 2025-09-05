@@ -10,8 +10,9 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class FirestoreUserDataSource(
+class FirestoreUserDataSource @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val storage: FirebaseStorage
 ) : IFirestoreUserDataSource {

@@ -164,6 +164,13 @@ class PostRepository @Inject constructor(
         }
     }
 
+    suspend fun getAll(): List<Post> = withContext(Dispatchers.IO) {
+        if (firestorePostDataSource == null) return@withContext emptyList()
+        val posts = firestorePostDataSource.getAllPosts()
+        return@withContext posts.map { it.toEntity() }
+
+    }
+
     // ***************************************************************** //
     // SYNCHRONICE REMOTE <=> LOCAL HELPERS                              //
     // ***************************************************************** //

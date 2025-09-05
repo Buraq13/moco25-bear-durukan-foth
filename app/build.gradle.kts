@@ -22,6 +22,9 @@ android {
     }
 
     buildTypes {
+        // **** Firebase Emulator Stuff *****//
+        debug {
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
