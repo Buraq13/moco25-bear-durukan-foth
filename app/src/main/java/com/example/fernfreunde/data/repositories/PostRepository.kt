@@ -11,6 +11,7 @@ import com.example.fernfreunde.data.local.daos.DailyChallengeDao
 import com.example.fernfreunde.data.local.daos.PostDao
 import com.example.fernfreunde.data.local.entities.Post
 import com.example.fernfreunde.data.mappers.SyncStatus
+import com.example.fernfreunde.data.mappers.toDto
 import com.example.fernfreunde.data.mappers.toEntity
 import com.example.fernfreunde.data.remote.dataSources.FirestorePostDataSource
 import com.google.firebase.auth.FirebaseAuth
@@ -95,8 +96,17 @@ class PostRepository @Inject constructor(
         // z.B. für Vorschau, bevor der User auf "Posten" drückt
         postDao.insert(localEntity)
 
-        // Post in die Warteschlange des upload Workers (WorkManager) hinzufügen
-        enqueueUploadWork(postId = postId, mediaUri = mediaUri)
+        // **************************************************
+        // Statt WorkManager: starte direkten Upload ASYNCHRON
+        // Verhalten: Methode gibt sofort postId zurück (wie vorher) — Upload läuft im Hintergrund.
+        // **************************************************
+        GlobalScope.launch {
+            try {
+                uploadPostImmediately(postId, mediaUri)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
 
         return@withContext postId
     }
@@ -106,10 +116,14 @@ class PostRepository @Inject constructor(
     // ***************************************************************** //
 
     // WorkManager um Posts in Firebase hochzuladen ---> für PostRepository & syncPendingPosts
+    // **WICHTIG**: WorkManager/UploadWorker ist hier absichtlich deaktiviert (nur noch Logging).
+    // Der Upload läuft jetzt direkt (siehe uploadPostImmediately). Die ursprüngliche WorkManager-Logik
+    // ist unten als Kommentar belassen, falls Du später wieder auf WorkManager umschalten möchtest.
     fun enqueueUploadWork(postId: String, mediaUri: Uri?) {
 
-        Log.i("PostRepository", "enqueueUploadWork called for postId=$postId mediaUri=$mediaUri")
+        Log.i("PostRepository", "enqueueUploadWork called for postId=$postId mediaUri=$mediaUri - currently disabled (direct upload mode).")
 
+        /* -- originaler, auskommentierter WorkManager-Code (disable) --
         // dataBuilder erstellt DataObject, das aus Key-Value-Paaren besteht
         // in dem Fall enthält es PostId & MediaUri (wenn nicht null), damit der Worker weiß, welches Post-Objekt er bearbeiten soll
         val dataBuilder = Data.Builder()
@@ -138,6 +152,7 @@ class PostRepository @Inject constructor(
         // enqueueUniqueWork(...) fügt eindeutigen Auftrag in die Warteschlange ein, falls schon ein Auftrag mit
         // exakt dem gleichen Namen existiert, wird er ersetzt -> verhindert doppelte Uploads
         workManager.enqueueUniqueWork("$UNIQUE_WORK_PREFIX$postId", ExistingWorkPolicy.REPLACE, uploadWork)
+        */
     }
 
     // ***************************************************************** //
@@ -196,7 +211,38 @@ class PostRepository @Inject constructor(
     suspend fun syncPendingPosts() = withContext(Dispatchers.IO) {
         val pending = postDao.getPostsBySyncStatus(SyncStatus.PENDING)
         pending.forEach { post ->
-            enqueueUploadWork(post.localId, post.mediaLocalPath?.toUri())
+            // früher: enqueueUploadWork(post.localId, post.mediaLocalPath?.toUri())
+            // jetzt: starte direkten Upload asynchron (ergebnis irrelevant für die Aufrufer-Logik)
+            GlobalScope.launch {
+                try {
+                    uploadPostImmediately(post.localId, post.mediaLocalPath?.toUri())
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    // ***************************************************************** //
+    // HILFSFUNKTIONEN                                                    //
+    // ***************************************************************** //
+
+    // Ersatz für Uplolad-Worker, da der nicht funktioniert hat: liest den lokalen Post, lädt die Mediendatei hoch
+    // und aktualisiert den lokalen DB-Eintrag nach erfolgreichem Upload.
+    private suspend fun uploadPostImmediately(postId: String, mediaUri: Uri?) = withContext(Dispatchers.IO) {
+        val local = postDao.getPostSync(postId) ?: return@withContext
+
+        try {
+            if (mediaUri != null) {
+                val downloadUrl = firestorePostDataSource.createPost(local.toDto(), mediaUri)
+                postDao.updateAfterSync(postId, postId, downloadUrl, SyncStatus.SYNCED, System.currentTimeMillis())
+                Log.i("PostRepository", "uploadPostImmediately success for postId=$postId url=$downloadUrl")
+            } else {
+                Log.i("PostRepository", "uploadPostImmediately: no mediaUri for postId=$postId; leaving as PENDING")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e("PostRepository", "uploadPostImmediately failed for postId=$postId: ${e.message}")
         }
     }
 }
