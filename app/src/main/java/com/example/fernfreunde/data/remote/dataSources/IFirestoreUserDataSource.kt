@@ -1,4 +1,3 @@
-// file: com/example/fernfreunde/data/remote/UserRemoteDataSource.kt
 package com.example.fernfreunde.data.remote.dataSources
 
 import android.net.Uri
@@ -10,7 +9,7 @@ interface IFirestoreUserDataSource {
     suspend fun getAllUsers(): List<UserDto>
 
     suspend fun createOrUpdateUser(user: UserDto)
-    suspend fun uploadProfileImage(userId: String, mediaUri: Uri): String // returns download URL
+    suspend fun uploadProfileImage(userId: String, mediaUri: Uri): String
 
     fun listenUser(userId: String): kotlinx.coroutines.flow.Flow<UserDto?>
 }
