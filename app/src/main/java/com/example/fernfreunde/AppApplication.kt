@@ -31,14 +31,11 @@ class AppApplication : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
 
-        // init Firebase
         FirebaseApp.initializeApp(this)
 
-        // Debuggable-Check statt BuildConfig.DEBUG
         val isDebuggable = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
         if (isDebuggable) {
             try {
-                // optional: Log oder andere Debug-Only-Kram
                 Log.i("AppApplication", "App is debuggable -> Firebase emulator routing enabled")
             } catch (e: Exception) {
                 Log.w("AppApplication", "Failed to configure debug behaviour: ${e.message}")
