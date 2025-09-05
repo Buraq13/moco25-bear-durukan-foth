@@ -124,12 +124,12 @@ class FriendsListViewModel @Inject constructor(
         }
     }
 
-    fun acceptFriendshipRequest(userIdA: String, userIdB: String) {
+    fun acceptFriendshipRequest(otherUserId: String) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             _isRefreshing.value = true
             try {
-                friendshipRepository.acceptFriendshipRequest(userIdA, userIdB)
+                friendshipRepository.acceptFriendshipRequest(userId, otherUserId)
                 friendshipRepository.syncFriendshipsFromRemote(userId)
                 loadAllUsers()
             } catch (e: Exception) {
