@@ -17,10 +17,14 @@ import com.example.fernfreunde.ui.screens.friends.FriendsListScreen
 import com.example.fernfreunde.ui.screens.main.MainScreen
 import com.example.fernfreunde.ui.screens.mission.MissionDetailsScreen
 import com.example.fernfreunde.ui.screens.profile.ProfileScreen
-import com.example.fernfreunde.ui.screens.profile.EditProfileScreen
 import com.example.fernfreunde.ui.screens.settings.SettingsScreen
 import com.example.fernfreunde.ui.screens.upload.UploadScreen
 import com.example.fernfreunde.ui.theme.FernfreundeTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.example.fernfreunde.feature.media.rememberRecordVideo
 
 @Composable
 fun AppNavHost() {
@@ -50,34 +54,64 @@ fun AppNavHost() {
         composable(Routes.UPLOAD) {
             val inPreview = LocalInspectionMode.current
 
-            // Gallery
+            // Thumbnail-State (für unten links)
+            var lastMedia by rememberSaveable { mutableStateOf<String?>(null) }
+
+            // Galerie (Photo Picker)
             val pickImage =
                 if (inPreview) ({})
-                else rememberMediaPicker(MediaType.Image) { /* TODO: viewModel.onImageChosen(it) */ }
+                else rememberMediaPicker(MediaType.Image) { uri ->
+                    lastMedia = uri?.toString()
+                }
 
-            // Take photo via system intent
+            // Foto aufnehmen (System-Intent)
             val takePhoto =
                 if (inPreview) ({})
-                else rememberTakePhoto { /* TODO: viewModel.onPhotoCaptured(it) */ }
+                else rememberTakePhoto { uri ->
+                    lastMedia = uri?.toString()
+                }
 
-            // Runtime permission (nur außerhalb der Preview initialisieren)
+            // Video aufnehmen (System-Intent)
+            val recordVideo =
+                if (inPreview) ({})
+                else rememberRecordVideo { uri ->
+                    lastMedia = uri?.toString()
+                }
+
+            // Runtime-Permissions (nur außerhalb der Preview initialisieren)
             val cameraPerm = if (inPreview) null else PermissionRequester(Permission.CAMERA)
+            val audioPerm  = if (inPreview) null else PermissionRequester(Permission.RECORD_AUDIO)
 
             UploadScreen(
                 onFriendsClick = { nav.go(Routes.FRIENDS) },
-                onUploadClick  = { nav.go(Routes.MAIN) },   // temporär: zurück zu MAIN
+                onUploadClick  = { nav.go(Routes.MAIN) },
                 onProfileClick = { nav.go(Routes.PROFILE) },
 
                 onOpenGallery  = pickImage,
-                onShutter      = {
+
+                // Tap = Foto
+                onShutter = {
                     if (inPreview) {
                         takePhoto()
                     } else {
-                        if (cameraPerm?.granted == true) takePhoto() else cameraPerm?.request?.let { it1 -> it1() }
+                        if (cameraPerm?.granted == true) takePhoto() else cameraPerm?.request()
                     }
                 },
+
+                // Long-Press = Video
+                onShutterLongPress = {
+                    if (inPreview) {
+                        recordVideo()
+                    } else {
+                        if (audioPerm?.granted == true) recordVideo() else audioPerm?.request()
+                    }
+                },
+
                 onSwitchCamera = { /* später CameraX */ },
-                onFlashModeChange = { /* später CameraX */ }
+                onFlashModeChange = { /* später CameraX */ },
+
+                // Thumbnail an Screen weitergeben
+                lastMedia = lastMedia
             )
         }
 
@@ -85,21 +119,8 @@ fun AppNavHost() {
             ProfileScreen(
                 onFriendsClick = { nav.go(Routes.FRIENDS) },
                 onUploadClick  = { nav.go(Routes.UPLOAD)  },
-                onProfileClick = { nav.go(Routes.MAIN) },
-                onEditProfileClick = { nav.navigate(Routes.EDIT_PROFILE) },
-                onSettingsClick = { nav.navigate(Routes.SETTINGS) } // 👈 hier verbinden
-            )
-        }
-
-        composable(Routes.EDIT_PROFILE) {
-            EditProfileScreen(
-                onSaveClick = { username, bio, email, imageUri ->
-                    // TODO: Daten speichern (z.B. Firebase / lokale DB)
-                    nav.popBackStack() // zurück zum Profil
-                },
-                onCancelClick = {
-                    nav.popBackStack()
-                }
+                onProfileClick = { nav.go(Routes.MAIN)   },  // Re-select → zurück zu MAIN
+                onSettingsClick = { nav.go(Routes.SETTINGS) } // falls dein ProfileScreen das anbietet
             )
         }
 
@@ -108,11 +129,7 @@ fun AppNavHost() {
                 onFriendsClick = { nav.go(Routes.FRIENDS) },
                 onUploadClick  = { nav.go(Routes.UPLOAD)  },
                 onProfileClick = { nav.go(Routes.PROFILE) },
-                onBackClick = { nav.popBackStack() },  // 👈 zurück zum Profil
-                onSaveClick = { push, requests ->
-                    // TODO: später speichern (Firebase / DB)
-                    nav.popBackStack() // nach Save zurück zum Profil
-                }
+                //onBackClick    = { nav.popBackStack() }     // nicht vorhanden! Muss in der UI eingefügt werden
             )
         }
 
@@ -128,8 +145,7 @@ private fun NavHostController.go(route: String) {
     navigate(route) {
         popUpTo(graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
-        restoreState = true
-    }
+        restoreState = true }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
@@ -137,4 +153,3 @@ private fun NavHostController.go(route: String) {
 private fun AppNavHostPreview() {
     FernfreundeTheme { AppNavHost() }
 }
-
