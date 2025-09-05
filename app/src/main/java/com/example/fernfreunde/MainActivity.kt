@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import com.example.fernfreunde.worker.DailyChallengeWorker
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -25,16 +26,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Notification Channel erstellen
+
         createNotificationChannel()
 
-        // Runtime-Permission für Android 13+ abfragen
+
         requestNotificationPermissionIfNeeded()
 
-        // WorkManager für tägliche Challenge starten
+
         scheduleDailyChallenge()
 
-        // Test-Notification direkt auslösen (kannst du später entfernen)
+
         triggerTestNotification()
 
         setContent {
@@ -49,7 +50,7 @@ class MainActivity : ComponentActivity() {
             val channelId = "daily_challenges"
             val name = "Daily Challenges"
             val descriptionText = "Erinnert dich an deine tägliche Challenge"
-            val importance = NotificationManager.IMPORTANCE_HIGH // sorgt für Banner + Sound
+            val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(channelId, name, importance).apply {
                 description = descriptionText
             }
@@ -95,14 +96,14 @@ class MainActivity : ComponentActivity() {
         ) return
 
         val builder = NotificationCompat.Builder(this, "daily_challenges")
-            .setSmallIcon(android.R.drawable.ic_dialog_info) // Standard-Icon zum Testen
+            .setSmallIcon(android.R.drawable.ic_dialog_info) // StandardIcon zum testen
             .setContentTitle("Test-Notification")
-            .setContentText("Hey, das ist nur ein Test! 🎉")
-            .setPriority(NotificationCompat.PRIORITY_HIGH) // sorgt für Banner + Sound
-            .setAutoCancel(true) // Notification verschwindet beim Tippen
+            .setContentText("Only a test")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
 
         with(NotificationManagerCompat.from(this)) {
-            notify(999, builder.build()) // 999 = Test-ID, überschreibt keine echten Notifications
+            notify(999, builder.build()) // 999 = Test-ID
         }
     }
 }

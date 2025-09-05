@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
@@ -24,7 +23,7 @@ import com.example.fernfreunde.ui.theme.FernfreundeTheme
 @Composable
 fun EditProfileScreen(
     initialUsername: String = "User",
-    initialBio: String = "Hi, this is a bio!",
+    initialBio: String = "Hi, that's a Bio!",
     initialEmail: String = "user@email.com",
     onSaveClick: (String, String, String, Uri?) -> Unit = { _, _, _, _ -> },
     onCancelClick: () -> Unit = {}
@@ -54,7 +53,7 @@ fun EditProfileScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
+            // Profilbild
             Card(
                 modifier = Modifier
                     .size(100.dp)
@@ -67,7 +66,7 @@ fun EditProfileScreen(
                         rememberAsyncImagePainter(selectedImageUri)
                     else
                         painterResource(R.drawable.placeholder),
-                    contentDescription = "Change Profile Picture",
+                    contentDescription = "Profilbild ändern",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -111,12 +110,12 @@ fun EditProfileScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 OutlinedButton(onClick = onCancelClick) {
-                    Text("Abort")
+                    Text("Abbrechen")
                 }
                 Button(
                     onClick = { onSaveClick(username, bio, email, selectedImageUri) }
                 ) {
-                    Text("Save")
+                    Text("Speichern")
                 }
             }
         }

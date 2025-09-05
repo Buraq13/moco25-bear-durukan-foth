@@ -135,7 +135,7 @@ fun LastActivitiesSection() {
             .padding(vertical = 16.dp)
     ) {
         Text(
-            text = "Letzte Aktivitäten",
+            text = "Last Activity",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -158,8 +158,8 @@ fun LastActivitiesSection() {
                         elevation = CardDefaults.cardElevation(2.dp)
                     ) {
                         Image(
-                            painter = painterResource(R.drawable.placeholder),
-                            contentDescription = "Letzte Aktivität $i",
+                            painter = painterResource(R.drawable.activityplaceholder),
+                            contentDescription = "Last Activity $i",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )
@@ -178,7 +178,7 @@ fun ActionCardWithIcon(text: String, icon: ImageVector, onClick: () -> Unit) {
             .height(60.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), // leichte Detailfarbe
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(6.dp)
     ) {
         Row(
@@ -191,13 +191,13 @@ fun ActionCardWithIcon(text: String, icon: ImageVector, onClick: () -> Unit) {
             Icon(
                 icon,
                 contentDescription = text,
-                tint = MaterialTheme.colorScheme.primary // Icon Detailfarbe
+                tint = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text,
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface // Textfarbe
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }

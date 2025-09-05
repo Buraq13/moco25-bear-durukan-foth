@@ -1,4 +1,4 @@
-package com.example.fernfreunde
+package com.example.fernfreunde.worker
 
 import android.content.Context
 import android.content.pm.PackageManager
@@ -22,8 +22,8 @@ class DailyChallengeWorker(context: Context, params: WorkerParameters) : Worker(
 
         val builder = NotificationCompat.Builder(applicationContext, "daily_challenges")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("Tägliche Challenge")
-            .setContentText("Vergiss nicht deine heutige Challenge!")
+            .setContentTitle("Daily Challenge")
+            .setContentText("Dont forget your challenge!")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
 

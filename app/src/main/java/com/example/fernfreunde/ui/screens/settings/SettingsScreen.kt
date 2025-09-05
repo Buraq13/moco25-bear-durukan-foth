@@ -62,7 +62,7 @@ fun SettingsScreen(
             Button(
                 onClick = {
                     onSaveClick(push, requests)
-                    onBackClick() // nach speichern zurück
+                    onBackClick()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
