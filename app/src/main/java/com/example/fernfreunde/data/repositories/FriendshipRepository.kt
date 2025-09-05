@@ -41,8 +41,6 @@ class FriendshipRepository @Inject constructor(
     // -> für ViewModel (z.B. FriendsSceen) -> Darstellung in UI         //
     // ***************************************************************** //
 
-    // liefert eine vollständige Liste aller Freunde als User-Objekte
-    //
     fun observeFriendsForUser(userId: String, status: FriendshipStatus = FriendshipStatus.ACCEPTED): Flow<List<User>> {
         return friendshipDao.observeFriendshipsForUser(userId, status)
             .map { friendships ->
@@ -67,13 +65,8 @@ class FriendshipRepository @Inject constructor(
             }
     }
 
-    // liefert alle Ids der Freunde
     suspend fun getFriendIdsForUser(userId: String): List<String> =
         friendshipDao.getFriendIdsForUser(userId, FriendshipStatus.ACCEPTED)
-
-    //
-    // fun observePendingFriendshipRequestsForUser(userId: String): Flow<List<User>> {
-    // }
 
     // ***************************************************************** //
     // SENDING & ACCEPTING FRIENDSHIPS                                   //
