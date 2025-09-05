@@ -25,11 +25,9 @@ interface FriendshipDao {
     // GET/OBSERVE FRIENDSHIPS                                           //
     // ***************************************************************** //
 
-    // einmalig überprüfen, ob eine Freundschaft existiert ---> für Repo/UseCase
     @Query("SELECT * FROM friendships WHERE userIdA = :a AND userIdB = :b LIMIT 1")
     suspend fun getFriendships(a: String, b: String): Friendship?
 
-    // alle Freunde eines Nutzers anzeigen, bei Änderungen automatisch UI updaten ---> für ViewModel (FriendslistScreen)
     @Query("""
       SELECT * FROM friendships 
       WHERE (userIdA = :userId OR userIdB = :userId) 
@@ -80,7 +78,6 @@ interface FriendshipDao {
     // COUNT FRIENDS FOR USER                                            //
     // ***************************************************************** //
 
-    // einmalig alle Freunde eines Nutzers zählen ---> für Repo/ViewModel
     @Query("""
     SELECT COUNT(*) FROM friendships 
     WHERE (userIdA = :userId OR userIdB = :userId) 
