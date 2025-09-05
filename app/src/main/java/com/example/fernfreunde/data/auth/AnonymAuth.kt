@@ -7,7 +7,20 @@ import javax.inject.Inject
 class AnonymAuth @Inject constructor(
     private val auth: FirebaseAuth
 ) {
-    suspend fun signInAnonymously(): FirebaseUser? {
+//    suspend fun signInAnonymously(): FirebaseUser? {
+//        return try {
+//            val result = auth.signInAnonymously().await()
+//            result.user
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            null
+//        }
+//    }
+
+    suspend fun ensureSignedIn(): FirebaseUser? {
+        // bereits angemeldet?
+        auth.currentUser?.let { return it }
+
         return try {
             val result = auth.signInAnonymously().await()
             result.user
@@ -15,5 +28,10 @@ class AnonymAuth @Inject constructor(
             e.printStackTrace()
             null
         }
+    }
+
+    // optional: Hilfsfunktion um nur die uid zu bekommen
+    suspend fun ensureUid(): String? {
+        return ensureSignedIn()?.uid
     }
 }

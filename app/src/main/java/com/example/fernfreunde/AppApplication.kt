@@ -15,26 +15,18 @@ import dagger.hilt.components.SingletonComponent
 @HiltAndroidApp
 class AppApplication : Application(), Configuration.Provider {
 
-//    @Inject
-//    lateinit var workerFactory: HiltWorkerFactory
-//
-//    override val workManagerConfiguration: Configuration =
-//        Configuration.Builder()
-//            .setWorkerFactory(workerFactory)
-//            .build()
+    override val workManagerConfiguration: Configuration
+        get() {
+            val entryPoint = EntryPointAccessors.fromApplication(
+                this,
+                HiltWorkerFactoryEntryPoint::class.java
+            )
+            val factory: HiltWorkerFactory = entryPoint.workerFactory()
 
-    override val workManagerConfiguration: Configuration by lazy {
-        // Hole das HiltWorkerFactory sicher aus dem Hilt-Component via EntryPointAccessors
-        val entryPoint = EntryPointAccessors.fromApplication(
-            this,
-            HiltWorkerFactoryEntryPoint::class.java
-        )
-        val workerFactory: HiltWorkerFactory = entryPoint.workerFactory()
-
-        Configuration.Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
-    }
+            return Configuration.Builder()
+                .setWorkerFactory(factory)
+                .build()
+        }
 
     override fun onCreate() {
         super.onCreate()

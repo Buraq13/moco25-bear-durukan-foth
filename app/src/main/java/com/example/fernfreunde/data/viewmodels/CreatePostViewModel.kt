@@ -1,8 +1,10 @@
 package com.example.fernfreunde.data.viewmodels
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fernfreunde.data.auth.AnonymAuth
 import com.example.fernfreunde.data.repositories.DailyChallengeRepository
 import com.example.fernfreunde.data.repositories.PostRepository
 import com.example.fernfreunde.data.repositories.UserRepository
@@ -21,6 +23,7 @@ class CreatePostViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val dailyChallengeRepository: DailyChallengeRepository,
     private val userRepository: UserRepository,
+    private val anonymAuth: AnonymAuth,
     private val auth: FirebaseAuth
 ): ViewModel() {
 
@@ -35,7 +38,15 @@ class CreatePostViewModel @Inject constructor(
 
     private var createJob: Job? = null
 
-    fun createNewPost(mediaUri: Uri?, description: String?) {
+    fun onImageChosen(uri: Uri) {
+        createPostWithMedia(uri, "")
+    }
+
+    fun onPhotoCaptured(uri: Uri) {
+        createPostWithMedia(uri, "")
+    }
+
+    fun createPostWithMedia(mediaUri: Uri?, description: String?) {
 
         if (mediaUri == null) {
             _lastError.value = "Kein Bild/Video ausgewählt."
@@ -50,12 +61,18 @@ class CreatePostViewModel @Inject constructor(
             _createdPostId.value = null
 
             try {
-                // ***** angemeldeten User prüfen *****
-                val uid = auth.currentUser?.uid
-                if (uid == null) {
-                    _lastError.value = "Nicht angemeldet."
-                    return@launch
-                }
+//                 // ***** angemeldeten User prüfen *****
+//                 val uid = auth.currentUser?.uid
+//                 if (uid == null) {
+//                     _lastError.value = "Nicht angemeldet."
+//                     return@launch
+//                 }
+
+                val user = anonymAuth.ensureSignedIn()
+                    ?: throw IllegalStateException("Anmeldung fehlgeschlagen")
+
+                val uid = user.uid
+                val userName = auth.currentUser?.displayName ?: "Anon"
 
                 // ***** aktuelle ChallengeId abrufen *****
                 val challengeId = withContext(Dispatchers.IO) {
@@ -75,14 +92,14 @@ class CreatePostViewModel @Inject constructor(
                     return@launch
                 }
 
-                // ***** optional: Benutzername (für Anzeige im Post) holen (kann null sein) *****
-                val userName = try {
-                    withContext(Dispatchers.IO) {
-                        userRepository.getUser(uid)?.displayName ?: userRepository.getUser(uid)?.username
-                    }
-                } catch (e: Exception) {
-                    null
-                }
+//                // ***** optional: Benutzername (für Anzeige im Post) holen (kann null sein) *****
+//                val userName = try {
+//                    withContext(Dispatchers.IO) {
+//                        userRepository.getUser(uid)?.displayName ?: userRepository.getUser(uid)?.username
+//                    }
+//                } catch (e: Exception) {
+//                    null
+//                }
 
                 // ***** Post erstellen (lokal + enqueue upload) *****
                 val postId = withContext(Dispatchers.IO) {
@@ -94,9 +111,11 @@ class CreatePostViewModel @Inject constructor(
                         mediaUri = mediaUri
                     )
                 }
+                Log.i("WM_STATUS", "Post created")
 
                 _createdPostId.value = postId
             } catch (e: Exception) {
+                e.printStackTrace()
                 _lastError.value = e.message ?: "Fehler beim Erstellen des Posts"
             } finally {
                 _isPosting.value = false

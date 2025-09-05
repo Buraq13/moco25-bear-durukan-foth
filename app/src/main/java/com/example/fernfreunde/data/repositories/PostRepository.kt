@@ -2,6 +2,8 @@ package com.example.fernfreunde.data.repositories
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
+import android.util.Log.*
 import androidx.core.net.toUri
 import androidx.work.*
 import androidx.work.NetworkType
@@ -105,6 +107,8 @@ class PostRepository @Inject constructor(
 
     // WorkManager um Posts in Firebase hochzuladen ---> für PostRepository & syncPendingPosts
     fun enqueueUploadWork(postId: String, mediaUri: Uri?) {
+
+        Log.i("PostRepository", "enqueueUploadWork called for postId=$postId mediaUri=$mediaUri")
 
         // dataBuilder erstellt DataObject, das aus Key-Value-Paaren besteht
         // in dem Fall enthält es PostId & MediaUri (wenn nicht null), damit der Worker weiß, welches Post-Objekt er bearbeiten soll

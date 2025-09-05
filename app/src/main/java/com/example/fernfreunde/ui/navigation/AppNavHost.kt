@@ -1,13 +1,16 @@
 package com.example.fernfreunde.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.fernfreunde.data.viewmodels.CreatePostViewModel
 import com.example.fernfreunde.feature.media.MediaType
 import com.example.fernfreunde.feature.media.rememberMediaPicker
 import com.example.fernfreunde.feature.media.rememberTakePhoto
@@ -50,18 +53,32 @@ fun AppNavHost() {
         composable(Routes.UPLOAD) {
             val inPreview = LocalInspectionMode.current
 
+            val viewModel: CreatePostViewModel = hiltViewModel() // new
+
             // Gallery
             val pickImage =
                 if (inPreview) ({})
-                else rememberMediaPicker(MediaType.Image) { /* TODO: viewModel.onImageChosen(it) */ }
+                else rememberMediaPicker(MediaType.Image) { uri ->
+                    uri?.let {
+                        viewModel.onImageChosen(it)
+                    }
+                }
 
             // Take photo via system intent
             val takePhoto =
                 if (inPreview) ({})
-                else rememberTakePhoto { /* TODO: viewModel.onPhotoCaptured(it) */ }
+                else rememberTakePhoto { uri ->
+                    uri?.let {
+                        viewModel.onPhotoCaptured(it)
+                    }
+                }
 
             // Runtime permission (nur außerhalb der Preview initialisieren)
             val cameraPerm = if (inPreview) null else PermissionRequester(Permission.CAMERA)
+
+            // Observing simple state to navigate back after success (optional)
+            val createdId = viewModel.createdPostId.collectAsState()  // remember import androidx.compose.runtime.collectAsState
+            val isPosting = viewModel.isPosting.collectAsState()
 
             UploadScreen(
                 onFriendsClick = { nav.go(Routes.FRIENDS) },
