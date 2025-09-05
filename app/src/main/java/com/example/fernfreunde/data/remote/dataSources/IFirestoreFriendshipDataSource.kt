@@ -1,4 +1,3 @@
-// file: com/example/fernfreunde/data/remote/FriendshipRemoteDataSource.kt
 package com.example.fernfreunde.data.remote.dataSources
 
 import com.example.fernfreunde.data.remote.dtos.FriendshipDto
