@@ -3,6 +3,7 @@ package com.example.fernfreunde.data.repositories
 import android.net.Uri
 import androidx.room.withTransaction
 import com.example.fernfreunde.data.local.entities.User
+import com.example.fernfreunde.data.mappers.toDto
 import com.example.fernfreunde.data.mappers.toEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -68,6 +69,16 @@ class UserRepository @Inject constructor(
     // ***************************************************************** //
 
     // muss noch implementiert werden
+
+    suspend fun upsertLocalUser(user: User, pushRemote: Boolean = false) = withContext(Dispatchers.IO) {
+        appDatabase.withTransaction {
+            userDao.upsert(user)
+            // optional: push changes to remote
+            if (pushRemote && remote != null) {
+                remote.createOrUpdateUser(user.toDto())
+            }
+        }
+    }
 
     // ***************************************************************** //
     // HELPER: SYNCHRONICE ROOM <-> FIREBASE                             //

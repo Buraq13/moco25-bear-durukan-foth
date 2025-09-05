@@ -9,25 +9,25 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
+import com.example.fernfreunde.data.remote.utils.getMillis
+import com.example.fernfreunde.data.remote.utils.getStringSafe
 
-class FirestorePostDataSource {
-
-    private val firestore = FirebaseFirestore.getInstance()
-    private val storage: FirebaseStorage = FirebaseStorage.getInstance()
+@Singleton
+class FirestorePostDataSource @Inject constructor(
+    private val firestore: FirebaseFirestore,
+    private val storage: FirebaseStorage
+) {
     private val postsCollection = firestore.collection(POST_COLLECTION)
 
     // ***************************************************************** //
     // READ OPERATIONS                                                   //
     // ***************************************************************** //
 
-    // die Posts von allen Freunden des eingeloggten Users holen
-    // da Firebase nur maximal 10 Einträge pro Anfrage erlaubt, chunked die Anfrage
     suspend fun getFriendsPosts(friendIds: List<String>, challengeId: String): List<PostDto> = withContext(Dispatchers.IO) {
         if (friendIds.isEmpty()) return@withContext emptyList()
         try {
@@ -35,22 +35,52 @@ class FirestorePostDataSource {
             val chunks = friendIds.chunked(10)
             for (chunk in chunks) {
                 var query = postsCollection.whereIn("userId", chunk)
-
                 query = query.whereEqualTo("challengeId", challengeId)
 
                 val snapshot = query
                     .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
                     .get()
                     .await()
-                results += snapshot.documents.mapNotNull {
-                    it.toObject(PostDto::class.java)
+
+                results += snapshot.documents.mapNotNull { doc ->
+                    try {
+                        val postId = doc.getStringSafe("postId") ?: doc.id
+                        val userId = doc.getStringSafe("userId") ?: ""
+                        val userName = doc.getStringSafe("userName")
+                        val challengeDate = doc.getStringSafe("challengeDate")
+                        val challengeIdField = doc.getStringSafe("challengeId")
+                        val description = doc.getStringSafe("description")
+                        val mediaRemoteUrl = doc.getStringSafe("mediaRemoteUrl")
+
+                        val createdAtClient = doc.getMillis("createdAtClient")
+                            ?: doc.getMillis("createdAt")
+                            ?: System.currentTimeMillis()
+
+                        val createdAtRaw = doc.get("createdAt")
+
+                        PostDto(
+                            postId = postId,
+                            userId = userId,
+                            userName = userName,
+                            challengeDate = challengeDate,
+                            challengeId = challengeIdField,
+                            description = description,
+                            mediaRemoteUrl = mediaRemoteUrl,
+                            createdAtClient = createdAtClient,
+                            createdAt = createdAtRaw
+                        )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        null
+                    }
                 }
             }
 
             val sorted = results.sortedByDescending { dto ->
-                val server = when (val s = dto.createdAtServer) {
+                val server = when (val s = dto.createdAt) {
                     is Timestamp -> s.toDate().time
                     is Long -> s
+                    is Number -> s.toLong()
                     else -> null
                 }
                 server ?: dto.createdAtClient
@@ -62,11 +92,44 @@ class FirestorePostDataSource {
         }
     }
 
+    suspend fun getAllPosts(): List<PostDto> {
+        val snapshot = postsCollection.limit(100).get().await()
+        return snapshot.documents.mapNotNull { doc ->
+            try {
+                val postId = doc.getStringSafe("postId") ?: doc.id
+                val userId = doc.getStringSafe("userId") ?: ""
+                val userName = doc.getStringSafe("userName")
+                val challengeDate = doc.getStringSafe("challengeDate")
+                val challengeIdField = doc.getStringSafe("challengeId")
+                val description = doc.getStringSafe("description")
+                val mediaRemoteUrl = doc.getStringSafe("mediaRemoteUrl")
+                val createdAtClient = doc.getMillis("createdAtClient")
+                    ?: doc.getMillis("createdAt")
+                    ?: System.currentTimeMillis()
+                val createdAtRaw = doc.get("createdAt")
+
+                PostDto(
+                    postId = postId,
+                    userId = userId,
+                    userName = userName,
+                    challengeDate = challengeDate,
+                    challengeId = challengeIdField,
+                    description = description,
+                    mediaRemoteUrl = mediaRemoteUrl,
+                    createdAtClient = createdAtClient,
+                    createdAt = createdAtRaw
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
+    }
+
     // ***************************************************************** //
     // WRITE OPERATIONS                                                  //
     // ***************************************************************** //
 
-    // Post in Firebase speichern
     suspend fun createPost(postDto: PostDto, mediaUri: Uri): String = withContext(Dispatchers.IO) {
         val postId = if (postDto.postId.isNotBlank()) postDto.postId else UUID.randomUUID().toString()
 
@@ -81,8 +144,9 @@ class FirestorePostDataSource {
         val map = hashMapOf<String, Any?>(
             "postId" to postId,
             "userId" to postDto.userId,
-            "user" to postDto.userName,
+            "userName" to postDto.userName,
             "challengeDate" to postDto.challengeDate,
+            "challengeId" to postDto.challengeId,
             "description" to postDto.description,
             "mediaRemoteUrl" to downloadUrl,
             "createdAtClient" to postDto.createdAtClient,

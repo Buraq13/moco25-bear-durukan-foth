@@ -55,7 +55,10 @@ class FriendsListViewModel @Inject constructor(
             if (userId == null) {
                 _friends.value = emptyList()
                 _pending.value = emptyList()
-                _allUsers.value = emptyList()
+                //_allUsers.value = emptyList()
+                _allUsers.value = withContext(Dispatchers.IO) {
+                    userRepository.getAllUsers()
+                }
                 return@launch
             }
 
@@ -124,15 +127,31 @@ class FriendsListViewModel @Inject constructor(
         }
     }
 
-    fun acceptFriendshipRequest(userIdA: String, userIdB: String) {
+    fun acceptFriendshipRequest(otherUserId: String) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             _isRefreshing.value = true
             try {
-                friendshipRepository.acceptFriendshipRequest(userIdA, userIdB)
+                friendshipRepository.acceptFriendshipRequest(userId, otherUserId)
                 friendshipRepository.syncFriendshipsFromRemote(userId)
                 loadAllUsers()
             } catch (e: Exception) {
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+    fun removeFriend(friendId: String) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                friendshipRepository.removeFriend(userId, friendId)
+                friendshipRepository.syncFriendshipsFromRemote(userId)
+                loadAllUsers()
+            } catch (e: Exception) {
+                e.printStackTrace()
             } finally {
                 _isRefreshing.value = false
             }

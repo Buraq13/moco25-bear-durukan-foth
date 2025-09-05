@@ -9,8 +9,7 @@ fun FriendshipDto.toEntity(): Friendship {
         userIdB = this.userIdB,
         status = this.status,
         requestedBy = this.requestedBy,
-        createdAt = this.createdAt,
-        lastInteractionAt = this.lastInteractionAt
+        createdAt = this.createdAt
     )
 }
 
@@ -20,7 +19,6 @@ fun Friendship.toDto(): FriendshipDto {
         userIdB = this.userIdB,
         status = this.status,
         requestedBy = this.requestedBy,
-        createdAt = this.createdAt,
-        lastInteractionAt = this.lastInteractionAt
+        createdAt = this.createdAt
     )
 }

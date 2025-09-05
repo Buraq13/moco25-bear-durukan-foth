@@ -1,4 +1,3 @@
-// file: com/example/fernfreunde/data/remote/FirebaseUserRemoteDataSource.kt
 package com.example.fernfreunde.data.remote.dataSources
 
 import android.net.Uri
@@ -10,13 +9,51 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
+import com.google.firebase.firestore.DocumentSnapshot
+import com.example.fernfreunde.data.remote.utils.getMillis
+import com.example.fernfreunde.data.remote.utils.getStringSafe
 
-class FirestoreUserDataSource(
+class FirestoreUserDataSource @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val storage: FirebaseStorage
 ) : IFirestoreUserDataSource {
 
     private val usersCollection = firestore.collection(USER_COLLECTION)
+
+    // ***************************************************************** //
+    // HELPER: sichere Mapping-Funktion                                  //
+    // -> wandelt DocumentSnapshot defensiv in UserDto um, ohne zu      //
+    //    crashen, wenn Timestamp/Feld-Typen anders sind                 //
+    // ***************************************************************** //
+    private fun mapSnapshotToDto(doc: DocumentSnapshot): UserDto? {
+        return try {
+            // userId: Feld oder doc.id als Fallback
+            val userId = doc.getStringSafe("userId") ?: doc.id.takeIf { it.isNotBlank() } ?: return null
+
+            // Pflicht-/Optionale Felder (robust lesen)
+            val username = doc.getStringSafe("username") ?: ""
+            val displayName = doc.getStringSafe("displayName")
+            val profileImageUrl = doc.getStringSafe("profileImageUrl")
+            val bio = doc.getStringSafe("bio")
+
+            // updatedAt: Timestamp | Long | Double | Int | Date -> Long millis
+            val updatedAt = doc.getMillis("updatedAt")
+
+            UserDto(
+                userId = userId,
+                displayName = displayName,
+                username = username,
+                profileImageUrl = profileImageUrl,
+                bio = bio,
+                updatedAt = updatedAt
+            )
+        } catch (e: Exception) {
+            // defensive: falls etwas unerwartet ist, nicht crashen, sondern null zurückgeben
+            e.printStackTrace()
+            null
+        }
+    }
 
     // ***************************************************************** //
     // READ OPERATIONS                                                   //
@@ -25,7 +62,7 @@ class FirestoreUserDataSource(
     override suspend fun getUser(userId: String): UserDto? {
         val snapshot = usersCollection.document(userId).get().await()
         return if (snapshot.exists()) {
-            snapshot.toObject(UserDto::class.java)
+            mapSnapshotToDto(snapshot)
         } else {
             null
         }
@@ -39,14 +76,14 @@ class FirestoreUserDataSource(
         val results = mutableListOf<UserDto>()
         for (chunk in chunks) {
             val snapshot = usersCollection.whereIn("userId", chunk).get().await()
-            results += snapshot.documents.mapNotNull { it.toObject(UserDto::class.java) }
+            results += snapshot.documents.mapNotNull { mapSnapshotToDto(it) }
         }
         return results
     }
 
     override suspend fun getAllUsers(): List<UserDto> {
         val snapshot = usersCollection.limit(100).get().await()
-        return snapshot.documents.mapNotNull { it.toObject(UserDto::class.java) }
+        return snapshot.documents.mapNotNull { mapSnapshotToDto(it) }
     }
 
     // ***************************************************************** //
@@ -90,7 +127,13 @@ class FirestoreUserDataSource(
                 return@addSnapshotListener
             }
             if (snapshot != null && snapshot.exists()) {
-                trySend(snapshot.toObject(UserDto::class.java))
+                try {
+                    trySend(mapSnapshotToDto(snapshot))
+                } catch (e: Exception) {
+                    // defensive: falls Mapping fehlschlägt -> sende null oder schließe
+                    e.printStackTrace()
+                    trySend(null)
+                }
             } else {
                 trySend(null)
             }

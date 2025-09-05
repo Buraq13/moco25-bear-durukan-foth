@@ -1,6 +1,7 @@
 package com.example.fernfreunde.data.mappers
 
 import androidx.room.TypeConverter
+import com.example.fernfreunde.data.local.entities.ChallengeType
 import com.example.fernfreunde.data.local.entities.FriendshipStatus
 import org.json.JSONArray
 
@@ -50,4 +51,15 @@ class Converters {
 
     @TypeConverter
     fun friendshipStatusToString(status: FriendshipStatus?): String? = status?.name
+
+    // ***************************************************************** //
+    // ChallengeType <-> String Converters                               //
+    // ***************************************************************** //
+
+    @TypeConverter
+    fun stringToChallengeType(value: String?): ChallengeType? =
+        value?.let { ChallengeType.valueOf(it) }
+
+    @TypeConverter
+    fun ChallengeTypeToString(type: ChallengeType?): String? = type?.name
 }

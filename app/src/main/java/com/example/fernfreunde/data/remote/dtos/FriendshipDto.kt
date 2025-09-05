@@ -7,6 +7,5 @@ data class FriendshipDto (
     val userIdB: String = "",
     var status: FriendshipStatus = FriendshipStatus.PENDING,  // PENDING/ACCEPTED/BLOCKED
     val requestedBy: String = "",
-    val createdAt: Long = System.currentTimeMillis(),
-    val lastInteractionAt: Long? = null
+    val createdAt: Long = System.currentTimeMillis()
 )
