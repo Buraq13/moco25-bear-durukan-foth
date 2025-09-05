@@ -61,13 +61,7 @@ class CreatePostViewModel @Inject constructor(
             _createdPostId.value = null
 
             try {
-//                 // ***** angemeldeten User prüfen *****
-//                 val uid = auth.currentUser?.uid
-//                 if (uid == null) {
-//                     _lastError.value = "Nicht angemeldet."
-//                     return@launch
-//                 }
-
+                // ***** angemeldeten User prüfen *****
                 val user = anonymAuth.ensureSignedIn()
                     ?: throw IllegalStateException("Anmeldung fehlgeschlagen")
 
@@ -91,15 +85,6 @@ class CreatePostViewModel @Inject constructor(
                     _lastError.value = "Limit für Posts in dieser Challenge erreicht."
                     return@launch
                 }
-
-//                // ***** optional: Benutzername (für Anzeige im Post) holen (kann null sein) *****
-//                val userName = try {
-//                    withContext(Dispatchers.IO) {
-//                        userRepository.getUser(uid)?.displayName ?: userRepository.getUser(uid)?.username
-//                    }
-//                } catch (e: Exception) {
-//                    null
-//                }
 
                 // ***** Post erstellen (lokal + enqueue upload) *****
                 val postId = withContext(Dispatchers.IO) {
