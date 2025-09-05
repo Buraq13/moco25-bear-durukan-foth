@@ -23,7 +23,6 @@ import com.example.fernfreunde.ui.components.navigation.NavItem
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    // missionText: String = "Today's Mission: Share a photo of your workspace.",
     currentRoute: String? = null,
     onFriendsClick: () -> Unit = {},
     onUploadClick:  () -> Unit = {},
@@ -115,7 +114,7 @@ private fun MissionBanner(mission: DailyChallenge?, onClick: () -> Unit) {
                 )
             }
             Spacer(Modifier.height(12.dp))
-            OutlinedButton(onClick = onClick) { Text("View mission") }   // <--------
+            OutlinedButton(onClick = onClick) { Text("View mission") }
         }
     }
 }
