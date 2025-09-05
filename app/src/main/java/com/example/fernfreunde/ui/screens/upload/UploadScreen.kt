@@ -49,7 +49,6 @@ fun UploadScreen(
     onUploadClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
 
-    // Kamera-/Medien-Callbacks (werden später verdrahtet)
     onShutter: () -> Unit = {},
     onSwitchCamera: () -> Unit = {},
     onOpenGallery: () -> Unit = {},
@@ -84,14 +83,14 @@ fun UploadScreen(
             }
         }
     ) { innerPadding ->
-        // Schwarzer „Preview“-Bereich (hier kommt später CameraX/PreviewView rein)
+        // Schwarzer Previewkasten, hier kommt dann CameraX hin#########
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .background(Color.Black)
         ) {
-            // Flash (oben links)
+            // Flash oben link
             IconButton(
                 onClick = { cycleFlash() },
                 modifier = Modifier
@@ -110,7 +109,7 @@ fun UploadScreen(
                 )
             }
 
-            // Kamera wechseln (oben rechts)
+            // Kamera wechseln oben recht s
             IconButton(
                 onClick = onSwitchCamera,
                 modifier = Modifier
@@ -118,13 +117,13 @@ fun UploadScreen(
                     .padding(12.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Cached, // „flip“-Icon
+                    imageVector = Icons.Outlined.Cached,
                     contentDescription = "Switch camera",
                     tint = Color.White
                 )
             }
 
-            // Galerie öffnen (unten links)
+            // Galerie öffnen unten links
             IconButton(
                 onClick = onOpenGallery,
                 modifier = Modifier
@@ -138,7 +137,7 @@ fun UploadScreen(
                 )
             }
 
-            // Shutter (unten Mitte)
+            // Shutter(weißer kreis) unten mitte
             ShutterButton(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -163,7 +162,7 @@ private fun ShutterButton(
         color = Color.Transparent,
         border = BorderStroke(width = 4.dp, color = Color.White)
     ) {
-        // Zentrierter innerer Kreis
+        // Innerer Kreis
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Surface(
                 modifier = Modifier.size(60.dp),
@@ -189,7 +188,6 @@ fun UploadScreenRoute(
     onProfileClick: () -> Unit = {},
     viewModel: CreatePostViewModel = hiltViewModel() // new
 ) {
-    // new
     val context = LocalContext.current
     val isPosting by viewModel.isPosting.collectAsState()
     val lastError by viewModel.lastError.collectAsState()
@@ -211,7 +209,6 @@ fun UploadScreenRoute(
         uri?.let { viewModel.createPostWithMedia(it, "no description") } // new
     }
 
-    // ***** Toasts für Feedback ******
     LaunchedEffect(lastError) {
         if (!lastError.isNullOrBlank()) {
             Toast.makeText(context, lastError, Toast.LENGTH_LONG).show()
@@ -223,7 +220,6 @@ fun UploadScreenRoute(
         if (!createdId.isNullOrBlank()) {
             Toast.makeText(context, "Post erstellt (lokal): $createdId", Toast.LENGTH_LONG).show()
             viewModel.clearCreatedPostEvent()
-            // Optional: navigate away
         }
     }
 
