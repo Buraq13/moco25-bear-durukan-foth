@@ -12,7 +12,7 @@ import com.example.fernfreunde.ui.navigation.Routes
 enum class NavItem(
     val label: String,
     val route: String,
-    val icon: ImageVector = Icons.Outlined.Group // default, wird überschrieben
+    val icon: ImageVector = Icons.Outlined.Group
 ) {
     Friends("Friends", Routes.FRIENDS, Icons.Outlined.Group),
     Upload ("Upload" , Routes.UPLOAD , Icons.Outlined.AddCircle),
