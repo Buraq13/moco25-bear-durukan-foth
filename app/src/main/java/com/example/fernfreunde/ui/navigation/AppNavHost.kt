@@ -53,7 +53,7 @@ fun AppNavHost() {
         composable(Routes.UPLOAD) {
             val inPreview = LocalInspectionMode.current
 
-            val viewModel: CreatePostViewModel = hiltViewModel() // new
+            val viewModel: CreatePostViewModel = hiltViewModel()
 
             // Gallery
             val pickImage =
@@ -73,16 +73,15 @@ fun AppNavHost() {
                     }
                 }
 
-            // Runtime permission (nur außerhalb der Preview initialisieren)
+            // Runtime permission
             val cameraPerm = if (inPreview) null else PermissionRequester(Permission.CAMERA)
 
-            // Observing simple state to navigate back after success (optional)
-            val createdId = viewModel.createdPostId.collectAsState()  // remember import androidx.compose.runtime.collectAsState
+            val createdId = viewModel.createdPostId.collectAsState()
             val isPosting = viewModel.isPosting.collectAsState()
 
             UploadScreen(
                 onFriendsClick = { nav.go(Routes.FRIENDS) },
-                onUploadClick  = { nav.go(Routes.MAIN) },   // temporär: zurück zu MAIN
+                onUploadClick  = { nav.go(Routes.MAIN) },
                 onProfileClick = { nav.go(Routes.PROFILE) },
 
                 onOpenGallery  = pickImage,
@@ -104,7 +103,7 @@ fun AppNavHost() {
                 onUploadClick  = { nav.go(Routes.UPLOAD)  },
                 onProfileClick = { nav.go(Routes.MAIN) },
                 onEditProfileClick = { nav.navigate(Routes.EDIT_PROFILE) },
-                onSettingsClick = { nav.navigate(Routes.SETTINGS) } // 👈 hier verbinden
+                onSettingsClick = { nav.navigate(Routes.SETTINGS) }
             )
         }
 
@@ -125,7 +124,7 @@ fun AppNavHost() {
                 onFriendsClick = { nav.go(Routes.FRIENDS) },
                 onUploadClick  = { nav.go(Routes.UPLOAD)  },
                 onProfileClick = { nav.go(Routes.PROFILE) },
-                onBackClick = { nav.popBackStack() },  // 👈 zurück zum Profil
+                onBackClick = { nav.popBackStack() },
                 onSaveClick = { push, requests ->
                     // TODO: später speichern (Firebase / DB)
                     nav.popBackStack() // nach Save zurück zum Profil
