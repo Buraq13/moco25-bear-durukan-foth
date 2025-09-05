@@ -94,9 +94,6 @@ class UserRepository @Inject constructor(
         }
     }
 
-    // ***************************************************************** //
-    // DELETE USERS                                                      //
-    // ***************************************************************** //
 
     suspend fun deleteUser(userId: String) = withContext(Dispatchers.IO) {
         userDao.deleteUser(userId)
