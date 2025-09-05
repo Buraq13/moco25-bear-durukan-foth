@@ -96,10 +96,7 @@ class PostRepository @Inject constructor(
         // z.B. für Vorschau, bevor der User auf "Posten" drückt
         postDao.insert(localEntity)
 
-        // **************************************************
-        // Statt WorkManager: starte direkten Upload ASYNCHRON
-        // Verhalten: Methode gibt sofort postId zurück (wie vorher) — Upload läuft im Hintergrund.
-        // **************************************************
+        // laternativ WorkManager nutzen
         GlobalScope.launch {
             try {
                 uploadPostImmediately(postId, mediaUri)
@@ -115,15 +112,11 @@ class PostRepository @Inject constructor(
     // UPLOAD POSTS (WORK MANAGER)                                       //
     // ***************************************************************** //
 
-    // WorkManager um Posts in Firebase hochzuladen ---> für PostRepository & syncPendingPosts
-    // **WICHTIG**: WorkManager/UploadWorker ist hier absichtlich deaktiviert (nur noch Logging).
-    // Der Upload läuft jetzt direkt (siehe uploadPostImmediately). Die ursprüngliche WorkManager-Logik
-    // ist unten als Kommentar belassen, falls Du später wieder auf WorkManager umschalten möchtest.
     fun enqueueUploadWork(postId: String, mediaUri: Uri?) {
 
         Log.i("PostRepository", "enqueueUploadWork called for postId=$postId mediaUri=$mediaUri - currently disabled (direct upload mode).")
 
-        /* -- originaler, auskommentierter WorkManager-Code (disable) --
+        /*
         // dataBuilder erstellt DataObject, das aus Key-Value-Paaren besteht
         // in dem Fall enthält es PostId & MediaUri (wenn nicht null), damit der Worker weiß, welches Post-Objekt er bearbeiten soll
         val dataBuilder = Data.Builder()
