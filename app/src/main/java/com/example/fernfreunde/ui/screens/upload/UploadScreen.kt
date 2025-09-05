@@ -40,7 +40,7 @@ private enum class FlashMode { Auto, On, Off }
 
 @Composable
 fun UploadScreen(
-    // Nav-Callbacks (wie gehabt)
+
     onFriendsClick: () -> Unit = {},
     onUploadClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},

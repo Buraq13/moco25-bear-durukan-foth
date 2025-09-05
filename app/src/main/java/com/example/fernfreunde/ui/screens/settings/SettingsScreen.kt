@@ -18,8 +18,8 @@ fun SettingsScreen(
     onFriendsClick: () -> Unit = {},
     onUploadClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onBackClick: () -> Unit = {},            // 👈 neu für zurück
-    onSaveClick: (Boolean, Boolean) -> Unit = { _, _ -> } // Save Callback
+    onBackClick: () -> Unit = {},
+    onSaveClick: (Boolean, Boolean) -> Unit = { _, _ -> }
 ) {
     var push by remember { mutableStateOf(true) }
     var requests by remember { mutableStateOf(true) }
@@ -58,7 +58,7 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Save Button
+
             Button(
                 onClick = {
                     onSaveClick(push, requests)
@@ -73,7 +73,7 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Optional: direkter Back Button
+
             OutlinedButton(
                 onClick = { onBackClick() },
                 modifier = Modifier.fillMaxWidth()

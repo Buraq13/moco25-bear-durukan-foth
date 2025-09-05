@@ -21,18 +21,18 @@ class ProfileViewModel @Inject constructor(
     private val auth: FirebaseAuth
 ) : ViewModel() {
 
-    // ********** Flow für User-Daten **********
+
     val userFlow: Flow<User?> = flow {
         val uid = auth.currentUser?.uid
         if (uid != null) {
-            emit(userRepository.getUser(uid))   // initiales Laden
-            emitAll(userRepository.observeUser(uid)) // realtime updates
+            emit(userRepository.getUser(uid))
+            emitAll(userRepository.observeUser(uid))
         } else {
             emit(null)
         }
     }.flowOn(Dispatchers.IO)
 
-    // ********** Profilbild hochladen **********
+
     fun uploadProfilePicture(uri: Uri) {
         val uid = auth.currentUser?.uid ?: return
         viewModelScope.launch {
@@ -40,12 +40,12 @@ class ProfileViewModel @Inject constructor(
                 userRepository.uploadProfilePicture(uid, uri)
             } catch (e: Exception) {
                 e.printStackTrace()
-                // Optional: Snackbar/Toast für Fehler
+
             }
         }
     }
 
-    // ********** Logout **********
+
     fun logout() {
         auth.signOut()
     }
