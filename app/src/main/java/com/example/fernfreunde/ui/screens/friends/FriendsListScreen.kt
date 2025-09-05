@@ -38,6 +38,12 @@ fun FriendsListScreen(
     val allUsers by viewModel.allUsers.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
+    // ---------- MINIMALE ÄNDERUNG: filtere allUsers, damit keine doppelten Einträge angezeigt werden ----------
+    val visibleAllUsers = allUsers.filter { user ->
+        // entferne aktuelle user selbst, sowie alle Freunde und pending-requests
+        friends.none { it.userId == user.userId } && pending.none { it.userId == user.userId }
+    }
+
     Scaffold(
         topBar = { TopBar(title = "Friends") },
         bottomBar = {
@@ -53,7 +59,7 @@ fun FriendsListScreen(
         FriendsList(
             friends = friends,
             pending = pending,
-            allUsers = allUsers,
+            allUsers = visibleAllUsers, // <- hier verwenden wir die gefilterte Liste
             onAccept = { fromUserId -> viewModel.acceptFriendshipRequest(fromUserId) },
             onAdd = { toUserId -> viewModel.sendFriendshipRequest(toUserId) },
             onRemove = { friendId -> viewModel.removeFriend(friendId) },
@@ -88,7 +94,8 @@ private fun FriendsList(
                     modifier = Modifier.padding(bottom = 6.dp)
                 )
             }
-            items(items = pending, key = { it.userId }) { user ->
+            // key mit Section-Prefix, damit Keys über alle Sektionen hinweg eindeutig sind
+            items(items = pending, key = { "pending_${it.userId}" }) { user ->
                 FriendItem(
                     user = user,
                     actionLabel = "Accept",
@@ -112,7 +119,8 @@ private fun FriendsList(
                 Text(text = "You have no friends yet.", style = MaterialTheme.typography.bodyMedium)
             }
         } else {
-            items(items = friends, key = { it.userId }) { user ->
+            // key mit Section-Prefix
+            items(items = friends, key = { "friend_${it.userId}" }) { user ->
                 FriendItem(
                     user = user,
                     actionLabel = "Remove",
@@ -136,7 +144,8 @@ private fun FriendsList(
                 Text(text = "No other users available.", style = MaterialTheme.typography.bodyMedium)
             }
         } else {
-            items(items = allUsers, key = { it.userId }) { user ->
+            // key mit Section-Prefix
+            items(items = allUsers, key = { "people_${it.userId}" }) { user ->
                 FriendItem(
                     user = user,
                     actionLabel = "Add",
