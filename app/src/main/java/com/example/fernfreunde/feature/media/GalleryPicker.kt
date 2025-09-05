@@ -11,9 +11,6 @@ enum class MediaType { Image, Video }
 
 /**
  * Merkt sich einen Media-Picker und gibt dir eine Launch-Funktion zurück.
- * Nutzung:
- * val pickImage = rememberMediaPicker(MediaType.Image) { uri -> /* handle */ }
- * IconButton(onClick = pickImage) { Icon(...) }
  */
 @Composable
 fun rememberMediaPicker(
