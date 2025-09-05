@@ -208,4 +208,3 @@ fun UploadScreenRoute(
         onFlashModeChange = { /* später mit CameraX */ }
     )
 }
-

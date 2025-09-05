@@ -21,6 +21,12 @@ import com.example.fernfreunde.ui.screens.profile.EditProfileScreen
 import com.example.fernfreunde.ui.screens.settings.SettingsScreen
 import com.example.fernfreunde.ui.screens.upload.UploadScreen
 import com.example.fernfreunde.ui.theme.FernfreundeTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import android.net.Uri
+import com.example.fernfreunde.feature.media.rememberRecordVideo
 
 @Composable
 fun AppNavHost() {
@@ -50,36 +56,59 @@ fun AppNavHost() {
         composable(Routes.UPLOAD) {
             val inPreview = LocalInspectionMode.current
 
-            // Gallery
+            // Unten-links Thumbnail-State (kannst du vorerst behalten – wird im v4-Screen nicht angezeigt)
+            var lastMedia by rememberSaveable { mutableStateOf<String?>(null) }
+
+            // Galerie (Photo Picker)
             val pickImage =
                 if (inPreview) ({})
-                else rememberMediaPicker(MediaType.Image) { /* TODO: viewModel.onImageChosen(it) */ }
+                else rememberMediaPicker(MediaType.Image) { uri: Uri? ->
+                    lastMedia = uri?.toString()
+                }
 
-            // Take photo via system intent
+            // Foto aufnehmen (System-Intent)
             val takePhoto =
                 if (inPreview) ({})
-                else rememberTakePhoto { /* TODO: viewModel.onPhotoCaptured(it) */ }
+                else rememberTakePhoto { uri: Uri? ->
+                    lastMedia = uri?.toString()
+                }
 
-            // Runtime permission (nur außerhalb der Preview initialisieren)
+            // Video aufnehmen (System-Intent)
+            val recordVideo =
+                if (inPreview) ({})
+                else rememberRecordVideo { uri: Uri? ->
+                    lastMedia = uri?.toString()
+                }
+
+            // Runtime-Permissions (nur außerhalb der Preview initialisieren)
             val cameraPerm = if (inPreview) null else PermissionRequester(Permission.CAMERA)
+            val audioPerm  = if (inPreview) null else PermissionRequester(Permission.RECORD_AUDIO)
 
             UploadScreen(
                 onFriendsClick = { nav.go(Routes.FRIENDS) },
-                onUploadClick  = { nav.go(Routes.MAIN) },   // temporär: zurück zu MAIN
+                onUploadClick  = { nav.go(Routes.MAIN) },
                 onProfileClick = { nav.go(Routes.PROFILE) },
 
                 onOpenGallery  = pickImage,
-                onShutter      = {
+
+                // Tap = Foto
+                onShutter = {
                     if (inPreview) {
                         takePhoto()
                     } else {
-                        if (cameraPerm?.granted == true) takePhoto() else cameraPerm?.request?.let { it1 -> it1() }
+                        if (cameraPerm?.granted == true) takePhoto() else cameraPerm?.request()
                     }
                 },
-                onSwitchCamera = { /* später CameraX */ },
-                onFlashModeChange = { /* später CameraX */ }
+
+                // Long-press gibt es im v4-UploadScreen NICHT mehr → Record UI bleibt in AppNavHost
+                onSwitchCamera    = { /* CameraX wechselt aktuell direkt im Screen */ },
+                onFlashModeChange = { /* optional: an VM melden */ }
             )
+
+            // Hinweis: recordVideo() bleibt verfügbar – wenn ihr später Long-Press wieder einführt,
+            // könnt ihr es dort aufrufen. Aktuell nur vorbereitet.
         }
+
 
         composable(Routes.PROFILE) {
             ProfileScreen(
@@ -87,7 +116,7 @@ fun AppNavHost() {
                 onUploadClick  = { nav.go(Routes.UPLOAD)  },
                 onProfileClick = { nav.go(Routes.MAIN) },
                 onEditProfileClick = { nav.navigate(Routes.EDIT_PROFILE) },
-                onSettingsClick = { nav.navigate(Routes.SETTINGS) } // 👈 hier verbinden
+                onSettingsClick = { nav.navigate(Routes.SETTINGS) }
             )
         }
 

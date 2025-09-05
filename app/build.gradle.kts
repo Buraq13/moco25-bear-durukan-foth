@@ -56,6 +56,27 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation("androidx.compose.material:material-icons-extended")
+    //implementation(libs.androidx.camera.core)
+
+    // --- CameraX (über BOM) ---
+    val camerax = "1.3.4"
+    implementation(platform("androidx.camera:camera-bom:$camerax"))
+    implementation("androidx.camera:camera-core")
+    implementation("androidx.camera:camera-camera2")
+    implementation("androidx.camera:camera-lifecycle")
+// ✅ NEU hinzugefügt
+    implementation("androidx.camera:camera-video")
+// ⚠️ HIER: bei dir war noch "camera-view:1.3.0-alpha02" → durch BOM-Version ersetzt
+    implementation("androidx.camera:camera-view")
+// ✅ NEU hinzugefügt
+    implementation("androidx.camera:camera-extensions")
+
+// Futures + Guava (wird von ProcessCameraProvider genutzt)
+    implementation("androidx.concurrent:concurrent-futures-ktx:1.2.0")
+    implementation("com.google.guava:guava:32.1.3-android")
+
+// Lifecycle Compose (richtiges Paket für LocalLifecycleOwner!)
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
 
     // --- Navigation ---
     implementation("androidx.navigation:navigation-compose:2.8.0")
