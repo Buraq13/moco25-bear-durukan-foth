@@ -1,47 +1,155 @@
 package com.example.fernfreunde
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.fernfreunde.data.auth.AnonymAuth
+import com.example.fernfreunde.data.local.entities.User
+import com.example.fernfreunde.data.repositories.UserRepository
+import com.example.fernfreunde.ui.navigation.AppNavHost
 import com.example.fernfreunde.ui.theme.FernfreundeTheme
+import com.example.fernfreunde.worker.DailyChallengeWorker
+import dagger.hilt.android.AndroidEntryPoint
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var anonymAuth: AnonymAuth
+
+    @Inject lateinit var userRepository: UserRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Falls diese Funktion fehlt: die nächste Zeile einfach löschen.
         enableEdgeToEdge()
+
+        lifecycleScope.launchWhenCreated {
+
+            try {
+                val firebaseUser = anonymAuth.ensureSignedIn()
+                firebaseUser?.let { user ->
+                    val uid = user.uid
+                    // create a default DTO/entity and persist it remotely + locally
+                    val defaultUsername = "anon_${uid.take(6)}"
+                    val defaultDisplayName = "Anonymous"
+
+                    // If you have a UserRepository with createOrUpdateUser(UserDto) -> use it:
+                    try {
+                        // userRepository should expose a createOrUpdateUser(userDto) method.
+                        userRepository.upsertLocalUser(
+                            User(
+                                userId = uid,
+                                username = defaultUsername,
+                                displayName = defaultDisplayName,
+                                profileImageUrl = null,
+                                bio = null,
+                                createdAt = System.currentTimeMillis()
+                            )
+                        )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        createNotificationChannel()
+
+
+        requestNotificationPermissionIfNeeded()
+
+
+        scheduleDailyChallenge()
+
+
+        triggerTestNotification()
+
         setContent {
             FernfreundeTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                AppNavHost()
+
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelId = "daily_challenges"
+            val name = "Daily Challenges"
+            val descriptionText = "Erinnert dich an deine tägliche Challenge"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(channelId, name, importance).apply {
+                description = descriptionText
+            }
+            val notificationManager: NotificationManager =
+                getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    FernfreundeTheme {
-        Greeting("Android")
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    100
+                )
+            }
+        }
+    }
+
+    private fun scheduleDailyChallenge() {
+        val dailyWorkRequest = PeriodicWorkRequestBuilder<DailyChallengeWorker>(
+            1, TimeUnit.DAYS
+        ).build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "daily_challenge",
+            ExistingPeriodicWorkPolicy.REPLACE,
+            dailyWorkRequest
+        )
+    }
+
+    private fun triggerTestNotification() {
+        // Permission Check (Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) return
+
+        val builder = NotificationCompat.Builder(this, "daily_challenges")
+            .setSmallIcon(android.R.drawable.ic_dialog_info) // StandardIcon zum testen
+            .setContentTitle("Test-Notification")
+            .setContentText("Only a test")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+
+        with(NotificationManagerCompat.from(this)) {
+            notify(999, builder.build()) // 999 = Test-ID
+        }
     }
 }
