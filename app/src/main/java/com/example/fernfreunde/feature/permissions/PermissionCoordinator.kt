@@ -65,10 +65,6 @@ object Permission {
     const val CAMERA = Manifest.permission.CAMERA
     const val RECORD_AUDIO = Manifest.permission.RECORD_AUDIO
 
-    // Ab Android 13 getrennt:
     const val READ_MEDIA_IMAGES = Manifest.permission.READ_MEDIA_IMAGES
     const val READ_MEDIA_VIDEO = Manifest.permission.READ_MEDIA_VIDEO
-
-    // Falls ihr eine höhere minSdk habt und READ_EXTERNAL_STORAGE nicht braucht, einfach ignorieren.
-    const val READ_EXTERNAL_STORAGE = Manifest.permission.READ_EXTERNAL_STORAGE
 }
